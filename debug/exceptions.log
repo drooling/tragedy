@@ -1,0 +1,29 @@
+['Traceback (most recent call last):\n',
+ '  File "C:\\Python39\\lib\\site-packages\\pymysql\\connections.py", line '
+ '713, in _write_bytes\n'
+ '    self._sock.sendall(data)\n',
+ 'ConnectionAbortedError: [WinError 10053] An established connection was '
+ 'aborted by the software in your host machine\n',
+ '\nDuring handling of the above exception, another exception occurred:\n\n',
+ 'Traceback (most recent call last):\n',
+ '  File "c:\\Users\\cutie\\Desktop\\tragedy\\Cogs\\core\\mod.py", line 113, '
+ 'in purge\n'
+ '    cursor.execute("SELECT * FROM prefix WHERE guild=%s", (ctx.guild.id))\n',
+ '  File "C:\\Python39\\lib\\site-packages\\pymysql\\cursors.py", line 170, in '
+ 'execute\n'
+ '    result = self._query(query)\n',
+ '  File "C:\\Python39\\lib\\site-packages\\pymysql\\cursors.py", line 328, in '
+ '_query\n'
+ '    conn.query(q)\n',
+ '  File "C:\\Python39\\lib\\site-packages\\pymysql\\connections.py", line '
+ '516, in query\n'
+ '    self._execute_command(COMMAND.COM_QUERY, sql)\n',
+ '  File "C:\\Python39\\lib\\site-packages\\pymysql\\connections.py", line '
+ '771, in _execute_command\n'
+ '    self._write_bytes(packet)\n',
+ '  File "C:\\Python39\\lib\\site-packages\\pymysql\\connections.py", line '
+ '716, in _write_bytes\n'
+ '    raise err.OperationalError(\n',
+ 'pymysql.err.OperationalError: (2006, "MySQL server has gone away '
+ "(ConnectionAbortedError(10053, 'An established connection was aborted by the "
+ 'software in your host machine\', None, 10053, None))")\n']
