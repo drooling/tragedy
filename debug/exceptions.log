@@ -1,29 +1,28 @@
 ['Traceback (most recent call last):\n',
- '  File "C:\\Python39\\lib\\site-packages\\pymysql\\connections.py", line '
- '713, in _write_bytes\n'
- '    self._sock.sendall(data)\n',
- 'ConnectionAbortedError: [WinError 10053] An established connection was '
- 'aborted by the software in your host machine\n',
- '\nDuring handling of the above exception, another exception occurred:\n\n',
+ '  File "C:\\Python39\\lib\\site-packages\\discord\\ext\\commands\\bot.py", '
+ 'line 618, in _load_from_module_spec\n'
+ '    setup(self)\n',
+ '  File "c:\\Users\\cutie\\Desktop\\tragedy\\Cogs\\secret\\captcha.py", line '
+ '91, in setup\n'
+ '    bot.add_cog(Captcha(bot))\n',
+ '  File "c:\\Users\\cutie\\Desktop\\tragedy\\Cogs\\secret\\captcha.py", line '
+ '34, in __init__\n'
+ '    self.chars = tragedy.randomString(5)\n',
+ '  File "c:\\Users\\cutie\\Desktop\\tragedy\\resources\\utilities.py", line '
+ '80, in randomString\n'
+ "    randString = ''.join(random.choice(components) in range(length))\n",
+ 'TypeError: can only join an iterable\n',
+ '\nThe above exception was the direct cause of the following exception:\n\n',
  'Traceback (most recent call last):\n',
- '  File "c:\\Users\\cutie\\Desktop\\tragedy\\Cogs\\core\\mod.py", line 113, '
- 'in purge\n'
- '    cursor.execute("SELECT * FROM prefix WHERE guild=%s", (ctx.guild.id))\n',
- '  File "C:\\Python39\\lib\\site-packages\\pymysql\\cursors.py", line 170, in '
- 'execute\n'
- '    result = self._query(query)\n',
- '  File "C:\\Python39\\lib\\site-packages\\pymysql\\cursors.py", line 328, in '
- '_query\n'
- '    conn.query(q)\n',
- '  File "C:\\Python39\\lib\\site-packages\\pymysql\\connections.py", line '
- '516, in query\n'
- '    self._execute_command(COMMAND.COM_QUERY, sql)\n',
- '  File "C:\\Python39\\lib\\site-packages\\pymysql\\connections.py", line '
- '771, in _execute_command\n'
- '    self._write_bytes(packet)\n',
- '  File "C:\\Python39\\lib\\site-packages\\pymysql\\connections.py", line '
- '716, in _write_bytes\n'
- '    raise err.OperationalError(\n',
- 'pymysql.err.OperationalError: (2006, "MySQL server has gone away '
- "(ConnectionAbortedError(10053, 'An established connection was aborted by the "
- 'software in your host machine\', None, 10053, None))")\n']
+ '  File "c:\\Users\\cutie\\Desktop\\tragedy\\loader.py", line 39, in '
+ '<module>\n'
+ '    bot.load_extension("Cogs.{}.{}".format(subdir.replace(\'/\', \'.\'), '
+ 'filename[:-3]))\n',
+ '  File "C:\\Python39\\lib\\site-packages\\discord\\ext\\commands\\bot.py", '
+ 'line 678, in load_extension\n'
+ '    self._load_from_module_spec(spec, name)\n',
+ '  File "C:\\Python39\\lib\\site-packages\\discord\\ext\\commands\\bot.py", '
+ 'line 623, in _load_from_module_spec\n'
+ '    raise errors.ExtensionFailed(key, e) from e\n',
+ "discord.ext.commands.errors.ExtensionFailed: Extension 'Cogs.secret.captcha' "
+ 'raised an error: TypeError: can only join an iterable\n']

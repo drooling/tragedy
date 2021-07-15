@@ -11,6 +11,8 @@ import pymysql.cursors
 from dotenv import load_dotenv
 import os
 
+load_dotenv(".env")
+
 databaseConfig = pymysql.connect(
 	host=os.getenv("mysqlServer"),
 	user="root",
