@@ -2,4 +2,4 @@
 backups/**
 **/ffmpeg.exe
 **/__pycache__
-**/secret
+**/secret/**
