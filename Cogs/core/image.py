@@ -22,7 +22,7 @@ class ImageManipulation(commands.Cog):
             final.seek(0)
             await ctx.send(file=discord.File(final, filename="linktr.ee_incriminating.png"))
 
-    @commands.command()
+    @commands.command() #In progress
     @commands.cooldown(1, 5, BucketType.member)
     async def gay(self, ctx, member: discord.Member = None):
         member = ctx.author if not member else member

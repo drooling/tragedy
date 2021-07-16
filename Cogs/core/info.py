@@ -2,8 +2,6 @@
 
 import asyncio
 from datetime import datetime
-
-from discord import embeds
 import resources.utilities as tragedy
 from discord.colour import Color
 from discord.ext import commands

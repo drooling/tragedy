@@ -4,7 +4,6 @@ import asyncio
 import io
 import logging
 from discord.colour import Color
-from discord.embeds import Embed
 from discord.ext import commands
 import discord
 from discord.ext.commands.cooldowns import BucketType

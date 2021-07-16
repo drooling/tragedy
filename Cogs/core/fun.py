@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from operator import contains
-from os import name
 import os
-from discord import member
 from discord.colour import Color
 from discord.ext import commands
 import discord
@@ -11,7 +8,6 @@ import asyncio
 import aiohttp
 from discord.ext.commands.cooldowns import BucketType
 import random
-import aiofiles
 import io
 
 
@@ -88,7 +84,6 @@ class Fun(commands.Cog):
 				file.flush()
 				file.close()
 				await ctx.reply(file=sendFile)
-
 
 	@commands.command(aliases=["guessgame", "smiley", "find"])
 	@commands.cooldown(1, 5, BucketType.member)
