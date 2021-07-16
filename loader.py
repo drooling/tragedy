@@ -2,15 +2,10 @@ import asyncio
 import logging
 import discord
 from discord.ext import commands
-import json
 import os
 from dislash import *
 import resources.utilities as tragedy
-
-with open("configuration.json", "r") as config:
-	data = json.load(config)
-	owner_id = data["owner_id"]
-
+import sys
 
 token = tragedy.dotenvVar("token")
 
@@ -20,12 +15,12 @@ class Initiate(commands.Cog):
 		self._last_member = None
 
 
-bot = commands.AutoShardedBot(tragedy.custom_prefix, intents=discord.Intents.all(), owner_id=owner_id, case_insensitive=True, strip_after_prefix=True, loop=asyncio.get_event_loop() , activity=discord.Activity(name="https://linktr.ee/incriminating", type=discord.ActivityType.watching), status=discord.Status.dnd)
+bot = commands.AutoShardedBot(tragedy.custom_prefix, intents=discord.Intents.all(), case_insensitive=True, strip_after_prefix=True, loop=asyncio.get_event_loop() , activity=discord.Activity(name="https://linktr.ee/incriminating", type=discord.ActivityType.watching), status=discord.Status.dnd)
 slash = SlashClient(bot)
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.INFO)
-handler = logging.FileHandler(filename='./debug/logs.log', encoding='utf-8', mode='w')
+handler = logging.StreamHandler(stream=sys.stdout)
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
