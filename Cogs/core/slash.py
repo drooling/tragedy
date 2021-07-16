@@ -35,42 +35,31 @@ class Slash(commands.Cog, command_attrs=dict(hidden=True)):
 		embed.add_field(name="Flags", value="{} - Discord Staff\n{} - Discord Partner\n{} - Verified Bot Developer".format(tragedy.EmojiBool(member.public_flags.staff), tragedy.EmojiBool(member.public_flags.partner), tragedy.EmojiBool(member.public_flags.verified_bot_developer)))
 		#embed.add_field(name="Other Info", value="HypeSquad House - {}\nUser has Nitro - {}\nConnected Accounts - {}".format(str(userProfile.hypesquad_houses).title(), tragedy.EmojiBool(await userProfile.nitro), ', '.join(externalAccounts).removeprefix(', ') if externalAccounts != [] else "None")) User profile has been depracated since v1.7
 		embed.set_footer(icon_url=ctx.author.avatar_url, text='Requested By: {}'.format(ctx.author.name))
-		temp = await ctx.send(embed=embed)
+		temp = await ctx.reply(embed=embed, mention_author=True)
 		await asyncio.sleep(15)
 		await temp.delete()
 
 	@slash_commands.command(
-		name="spotify",
-		description="Gives details about what specified user is currently listening to on Spotify",
+		name="avatar",
+		description="Returns specified user's avatar (pfp)",
 		options=[
-			Option("member", "Specify any user", Type.USER, required=True)
+			Option("member", "Specify any user", Type.USER, required=False),
 		]
 	)
-	async def spotify(self, ctx, member: discord.Member):
-		try:
-			for activity in member.activities:
-				if isinstance(activity, Spotify):
-					embed = discord.Embed(title="Spotify", color=activity.color)
-					embed.set_author(name=member, icon_url="https://discord.com/assets/f0655521c19c08c4ea4e508044ec7d8c.png")
-					embed.set_thumbnail(url=activity.album_cover_url)
-					embed.add_field(name="Song Title", value=activity.title)
-					embed.add_field(name="Song Album", value=activity.album)
-					embed.add_field(name="Song Artist(s)", value=', '.join(activity.artists).removeprefix(', '), inline=False)
-					embed.add_field(name="Song Length", value="{}:{}".format((activity.duration.seconds % 3600) // 60, activity.duration.seconds % 60), inline=False)
-					embed.add_field(name="Party ID", value=activity.party_id)
-					embed.add_field(name="Track ID", value=activity.track_id)
-					temp = await ctx.send(embed=embed)
-					await asyncio.sleep(15)
-					await temp.delete()
-				else:
-					pass
-			if "Spotify" not in str(member.activities):
-				embed = discord.Embed(title="Error", description="That user is not listening to Spotify at the moment you silly goose.", color=Color.red())
-				temp = await ctx.send(embed=embed)
-				await asyncio.sleep(15)
-				await temp.delete()
-		except Exception as exc:
-			print("[Exception] {}".format(exc))
+	async def avatar(self, ctx, member: discord.Member = None):
+		member = member if member != None else ctx.author
+		_128 = member.avatar_url_as(format='png', size=128)
+		_256 = member.avatar_url_as(format='png', size=256)
+		_512 = member.avatar_url_as(format='png', size=512)
+		_1024 = member.avatar_url_as(format='png', size=1024)
+		_2048 = member.avatar_url_as(format='png', size=2048)
+		embed = discord.Embed(color=Color.green(), description="**[ [128]({}) ] - [ [256]({}) ] - [ 512 ] - [ [1024]({}) ] - [ [2048]({}) ]**".format(_128, _256, _1024, _2048))
+		embed.set_image(url=_512)
+		embed.set_footer(text="{}'s Avatar (512 x 512)".format(member))
+		temp = await ctx.reply(embed=embed, mention_author=True)
+		await asyncio.sleep(15)
+		await temp.delete()
+		await ctx.message.delete()
 
 	@slash_commands.command(
 		name="serverinfo",
@@ -92,7 +81,7 @@ class Slash(commands.Cog, command_attrs=dict(hidden=True)):
 		embed.add_field(name = "Other Info", value="AFK Channel: **{}**\n AFK Timeout: **{} minute(s)**\nCustom Emojis: **{}**\nRole Count: **{}**\nFilesize Limit - **{}**".format(ctx.guild.afk_channel, str(ctx.guild.afk_timeout / 60), len(ctx.guild.emojis), len(ctx.guild.roles), tragedy.humansize(ctx.guild.filesize_limit)), inline=False)
 		embed.add_field(name = "Server Features", value="{} - Banner\n{}\n{} - Splash Invite\n{} - Animated Icon\n{} - Server Discoverable".format(tragedy.EmojiBool(banner), vanityFeature, tragedy.EmojiBool(splash), tragedy.EmojiBool(animicon), tragedy.EmojiBool(discoverable)))
 		embed.add_field(name = "Nitro Info", value="Number of Boosts - **{}**\nBooster Role - **{}**\nBoost Level/Tier - **{}**".format(str(ctx.guild.premium_subscription_count), ctx.guild.premium_subscriber_role.mention if ctx.guild.premium_subscriber_role != None else ctx.guild.premium_subscriber_role, ctx.guild.premium_tier))
-		temp = await ctx.send(embed=embed)
+		temp = await ctx.reply(embed=embed, mention_author=True)
 		await asyncio.sleep(15)
 		await temp.delete()
 

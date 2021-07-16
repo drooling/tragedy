@@ -11,11 +11,12 @@ import logging
 import datetime
 import resources.utilities as tragedy
 import pymysql.cursors
+import resources.utilities as tragedy
 
 databaseConfig = pymysql.connect(
-	host="158.69.21.92",
+	host=tragedy.dotenvVar("mysqlServer"),
 	user="root",
-	password="t#eC&4%pQy4^v4t9gZXo5pDSNXkPT3",
+	password=tragedy.dotenvVar("mysqlPassword"),
 	port=3306,
 	database="tragedy",
 	charset='utf8mb4',
@@ -37,7 +38,7 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 	async def on_message(self, payload: discord.Message):
 		if payload.author == self.bot.user:
 			return
-		elif self.bot.user in payload.mentions:
+		elif self.bot.user in payload.mentions and payload.mention_everyone is False:
 			cursor.execute("SELECT * FROM prefix WHERE guild=%s", (payload.guild.id))
 			prefix = cursor.fetchone().get('prefix')
 			cursor.execute("SELECT * FROM var")
@@ -127,9 +128,9 @@ while __name__ == "__main__":
 		logging.log(logging.CRITICAL, exc)
 		logging.log(logging.INFO, "Attempting to reconnect to MySQL database in '{}'".format(__file__[:-3]))
 		databaseConfig = pymysql.connect(
-			host="158.69.21.92",
+			host=tragedy.dotenvVar("mysqlServer"),
 			user="root",
-			password="t#eC&4%pQy4^v4t9gZXo5pDSNXkPT3",
+			password=tragedy.dotenvVar("mysqlPassword"),
 			port=3306,
 			database="tragedy",
 			charset='utf8mb4',

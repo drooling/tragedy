@@ -46,14 +46,15 @@ class Fun(commands.Cog):
 	@commands.command()
 	@commands.cooldown(1, 5, type=BucketType.member)
 	async def shorten(self, ctx:commands.Context, *, url: str):
-		embed=discord.Embed(title="URL Shortener ({})".format(url), color=Color.green())
-		async with self.aiohttp.get("https://api.shrtco.de/v2/shorten?url={}".format(url)) as shrtco:
-			async with self.aiohttp.get("https://clck.ru/--?url={}".format(url)) as clck:
-				async with self.aiohttp.get("http://tinyurl.com/api-create.php?url={}".format(url)) as tiny:
-					parse = await shrtco.json()
-					embed.add_field(name="Shortened URL (9qr.de)", value=parse["result"]["full_short_link2"], inline=False)
-					embed.add_field(name="Shortened URL (clck.ru)", value=await clck.text(), inline=False)
-					embed.add_field(name="Shortened URL (tinyurl.com)", value=await tiny.text(), inline=False)
+		async with ctx.typing():
+			embed=discord.Embed(title="URL Shortener ({})".format(url), color=Color.green())
+			async with self.aiohttp.get("https://api.shrtco.de/v2/shorten?url={}".format(url)) as shrtco:
+				async with self.aiohttp.get("https://clck.ru/--?url={}".format(url)) as clck:
+					async with self.aiohttp.get("http://tinyurl.com/api-create.php?url={}".format(url)) as tiny:
+						parse = await shrtco.json()
+						embed.add_field(name="Shortened URL (9qr.de)", value=parse["result"]["full_short_link2"], inline=False)
+						embed.add_field(name="Shortened URL (clck.ru)", value=await clck.text(), inline=False)
+						embed.add_field(name="Shortened URL (tinyurl.com)", value=await tiny.text(), inline=False)
 		await ctx.reply(embed=embed, mention_author=True)
 
 	@commands.command(aliases=["deepfry", "deepfried"])
