@@ -27,11 +27,11 @@ logger.addHandler(handler)
 
 if __name__ == '__main__':
 	os.system('clear')
-	for subdir in os.listdir("cogs"):
-		for filename in os.listdir("cogs/{}".format(subdir)):
+	for subdir in os.listdir("bot/cogs"):
+		for filename in os.listdir("bot/cogs/{}".format(subdir)):
 			if filename.endswith(".py"):
 				try:
-					bot.load_extension("cogs.{}.{}".format(subdir.replace('/', '.'), filename[:-3]))
+					bot.load_extension("bot.cogs.{}.{}".format(subdir.replace('/', '.'), filename[:-3]))
 				except discord.ext.commands.ExtensionError as exc:
 					tragedy.logError(exc)
 				except discord.ext.commands.errors.ExtensionNotLoaded as exc:

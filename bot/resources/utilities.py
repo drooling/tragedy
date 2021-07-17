@@ -83,7 +83,7 @@ def randomString(length):
 def logError(exception: Exception):
 	exc_type, exc_value, exc_tb = sys.exc_info()
 	exception = traceback.format_exception(exc_type, exc_value, exc_tb)
-	debugFile = open('./debug/exceptions.log', 'w')
+	debugFile = open('./bot/debug/exceptions.log', 'w')
 	pprint.pprint(exception, stream=debugFile)
 	debugFile.close()
 	logging.log(logging.ERROR, "Exception was thrown, to see more details open /debug/exceptions.log")
