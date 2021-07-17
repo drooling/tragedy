@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from discord.activity import Spotify
-import resources.utilities as tragedy
+import bot.resources.utilities as tragedy
 import asyncio
 from datetime import datetime
 from discord.colour import Color

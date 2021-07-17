@@ -2,7 +2,7 @@
 
 import asyncio
 from datetime import datetime
-import resources.utilities as tragedy
+import bot.resources.utilities as tragedy
 from discord.colour import Color
 from discord.ext import commands
 import discord

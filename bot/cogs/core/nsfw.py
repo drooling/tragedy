@@ -7,7 +7,7 @@ import json
 import aiohttp
 from discord.ext.commands.cooldowns import BucketType
 import asyncio
-import resources.utilities as tragedy
+import bot.resources.utilities as tragedy
 
 class Nsfw(commands.Cog):
 	def __init__(self, bot):

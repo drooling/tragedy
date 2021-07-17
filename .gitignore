@@ -1,8 +1,9 @@
-*.env
-backups/**
+**/.env
+**/backups/**
 **/ffmpeg.exe
 **/__pycache__
 **/secret
 **/debug
 **/resources/authorized.json
 **/resources/pack.json
+**/_environment

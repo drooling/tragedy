@@ -8,7 +8,7 @@ from discord.ext import commands
 import discord
 from discord.ext.commands.cooldowns import BucketType
 import pymysql.cursors
-import resources.utilities as tragedy
+import bot.resources.utilities as tragedy
 
 databaseConfig = pymysql.connect(
 	host=tragedy.dotenvVar("mysqlServer"),

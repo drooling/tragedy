@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import MissingPermissions, CheckFailure, CommandNotFound, NotOwner
 import asyncio
-import resources.utilities as tragedy
+import bot.resources.utilities as tragedy
 
 
 class Errors(commands.Cog, name="on command error"):
