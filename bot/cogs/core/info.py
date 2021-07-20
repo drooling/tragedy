@@ -10,6 +10,8 @@ from discord.ext.commands.cooldowns import BucketType
 import timeago
 from discord.activity import *
 import aiohttp
+import cloudmersive_virus_api_client
+from cloudmersive_virus_api_client.rest import ApiException
 
 class Info(commands.Cog):
 	def __init__(self, bot):
@@ -163,6 +165,16 @@ class Info(commands.Cog):
 					embed.add_field(name="Ethereum (ETH)", value="USD - **${}**\nEUR - **{}€**\nCAD - **${}**".format(jObjETH['USD'], jObjETH['EUR'], jObjETH['CAD']), inline=False)
 					embed.add_field(name="Monero (XMR)", value="USD - **${}**\nEUR - **{}€**\nCAD - **${}**".format(jObjXMR['USD'], jObjXMR['EUR'], jObjXMR['CAD']), inline=False)
 					await ctx.reply(embed=embed, mention_author=True)
+
+	@commands.command(name="virusscan", aliases=["scanurl", "check"])
+	@commands.cooldown(1, 35, BucketType.member)
+	async def _virus(self, ctx, *, url: str):
+		config = cloudmersive_virus_api_client.Configuration()
+		config.api_key['Apikey'] = 'd7618e8b-e854-4a7a-8295-75bfc902a3a5'
+		instance = cloudmersive_virus_api_client.ScanApi(cloudmersive_virus_api_client.ApiClient(config))
+		input = cloudmersive_virus_api_client.WebsiteScanRequest(url=url)
+		response = instance.scan_website(input)
+		await ctx.send(response)
 
 def setup(bot):
 	bot.add_cog(Info(bot))

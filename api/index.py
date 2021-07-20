@@ -32,6 +32,7 @@ async def add(email: str = None):
     else:
         try:
             cursor.execute("INSERT INTO news (email) VALUES (%s)", (email))
+            cursor.commit()
             return HTMLResponse(status_code=200)
         except:
             return HTTPException(500)

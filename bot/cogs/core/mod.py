@@ -107,7 +107,7 @@ class Mod(commands.Cog):
 	async def purge(self, ctx, *args):
 		for arg in args:
 			if arg.lower() == "all":
-				await ctx.channel.purge(bulk=True)
+				await ctx.channel.purge(bulk=True, limit=999999999999999999)
 				try:
 					cursor.execute("SELECT * FROM prefix WHERE guild=%s", (ctx.guild.id))
 					temp = await ctx.send(embed=discord.Embed(title="Channel Nuked!", description="Type \"{}help\" for commands.".format(cursor.fetchone().get('prefix')), color=discord.Color.green()).set_image(url='https://media.giphy.com/media/HhTXt43pk1I1W/source.gif'))
@@ -115,7 +115,6 @@ class Mod(commands.Cog):
 					await temp.delete()
 				except Exception as exc:
 					tragedy.logError(exc)
-
 			if isinstance(arg, int):
 				await ctx.channel.purge(limit=arg)
 				try:
