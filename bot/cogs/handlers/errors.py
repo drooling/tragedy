@@ -10,8 +10,8 @@ class Errors(commands.Cog, name="on command error"):
 		self.bot = bot
 		
 	@commands.Cog.listener()
-	async def on_command_error(self, ctx:commands.Context, error:commands.CommandError):
-		if ctx.command.has_error_handler():
+	async def on_command_error(self, ctx: commands.Context, error:commands.CommandError):
+		if ctx.command.has_error_handler() == True:
 			return
 		else:
 			if isinstance(error, NotOwner):

@@ -2,6 +2,8 @@
 
 import asyncio
 from datetime import datetime
+
+from discord.enums import ActivityType
 import bot.resources.utilities as tragedy
 from discord.colour import Color
 from discord.ext import commands
@@ -11,7 +13,6 @@ import timeago
 from discord.activity import *
 import aiohttp
 import cloudmersive_virus_api_client
-from cloudmersive_virus_api_client.rest import ApiException
 
 class Info(commands.Cog):
 	def __init__(self, bot):
@@ -82,12 +83,12 @@ class Info(commands.Cog):
 	@commands.command()
 	@commands.cooldown(1, 5, type=BucketType.member)
 	async def spotify(self, ctx, member: discord.Member = None):
-		member = member if member != None else ctx.author
+		target = member if member != None else ctx.author
 		try:
-			for activity in member.activities:
+			for activity in target.activities:
 				if isinstance(activity, Spotify):
 					embed = discord.Embed(title="Spotify", color=activity.color)
-					embed.set_author(name=member, icon_url="https://discord.com/assets/f0655521c19c08c4ea4e508044ec7d8c.png")
+					embed.set_author(name=target, icon_url="https://discord.com/assets/f0655521c19c08c4ea4e508044ec7d8c.png")
 					embed.set_thumbnail(url=activity.album_cover_url)
 					embed.add_field(name="Song Title", value=activity.title)
 					embed.add_field(name="Song Album", value=activity.album)
@@ -101,13 +102,49 @@ class Info(commands.Cog):
 					await ctx.message.delete()
 				else:
 					pass
-			if "Spotify" not in str(member.activities):
+			if "Spotify" not in str(target.activities):
 				ctx.command.reset_cooldown(ctx)
 				embed = discord.Embed(title="Error", description="That user is not listening to Spotify at the moment you silly goose.", color=Color.red())
 				temp = await ctx.reply(embed=embed, mention_author=True)
 				await asyncio.sleep(15)
 				await temp.delete()
 				await ctx.message.delete()
+		except Exception as exc:
+			tragedy.logError(exc)
+	
+	@commands.command()
+	@commands.cooldown(1, 5, type=BucketType.member)
+	async def status(self, ctx, member: discord.Member = None):
+		target = member if member != None else ctx.author
+		try:
+			for activity in target.activities:
+				if isinstance(activity, Spotify):
+					embed = discord.Embed(title="Spotify", color=activity.color)
+					embed.set_author(name=target, icon_url="https://discord.com/assets/f0655521c19c08c4ea4e508044ec7d8c.png")
+					embed.set_thumbnail(url=activity.album_cover_url)
+					embed.add_field(name="Song Title", value=activity.title)
+					embed.add_field(name="Song Album", value=activity.album)
+					embed.add_field(name="Song Artist(s)", value=', '.join(activity.artists).removeprefix(', '), inline=False)
+					embed.add_field(name="Song Length", value="{}:{}".format((activity.duration.seconds % 3600) // 60, activity.duration.seconds % 60), inline=False)
+					embed.add_field(name="Party ID", value=activity.party_id)
+					embed.add_field(name="Track ID", value=activity.track_id)
+					await ctx.reply(embed=embed, mention_author=True)
+				if isinstance(activity, CustomActivity):
+					embed = discord.Embed(title=target, color=Color.green(), description=activity.name)
+					await ctx.reply(embed=embed, mention_author=True)
+				if isinstance(activity, Game):
+					embed = discord.Embed(title=target, color=Color.green(), description=activity.name)
+					embed.add_field(name="Playing", value=activity.name)
+					await ctx.reply(embed=embed, mention_author=True)
+				if isinstance(activity, Streaming):
+					embed = discord.Embed(title="Streaming on [{}]({})".format(activity.platform, activity.url), color=Color.green())
+					embed.add_field(name="Playing", value=activity.game)
+					embed.add_field(name="Details", value=activity.details)
+					if activity.platform == "Twitch":
+						embed.add_field(name="Twitch Profile", value="https://www.twitch.tv/{}".format(activity.twitch_name))
+					await ctx.reply(embed=embed, mention_author=True)
+				else:
+					pass
 		except Exception as exc:
 			tragedy.logError(exc)
 
@@ -120,7 +157,7 @@ class Info(commands.Cog):
 		else:
 			try:
 				x = location.lower()
-				async with self.aiohttp.get('http://api.openweathermap.org/data/2.5/weather?q={}&APPID={}'.format(x, "ab7f918b6ac57bfbcb45607f320907e1")) as x:
+				async with self.aiohttp.get('http://api.openweathermap.org/data/2.5/weather?q={}&APPID={}'.format(x, tragedy.dotenvVar("weathermapApiKey"))) as x:
 					parse = await x.json()
 					cord1, cord2 = str(parse['coord']['lon']), str(parse['coord']['lat'])
 					embed=discord.Embed(title='{} ({})'.format(parse['name'], parse['sys']['country']), colour=discord.Color.green(), description='Longitude : {} | Latitude : {}'.format(cord1, cord2))
