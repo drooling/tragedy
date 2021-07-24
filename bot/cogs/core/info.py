@@ -62,6 +62,19 @@ class Info(commands.Cog):
 		await temp.delete()
 		await ctx.message.delete()
 
+	@commands.command(name="emoji", aliases=["ei", "emojinfo"])
+	@commands.cooldown(1, 5, type=BucketType.member)
+	async def _emoji(self, ctx, emoji: discord.Emoji):
+		embed = discord.Embed(title = '**{}**'.format(emoji.name), colour = Color.green(), timestamp=datetime.utcnow())
+		embed.set_thumbnail(url=str(emoji.url))
+		embed.add_field(name="Basic Info", value="Emoji Name - **{}**\nEmoji ID - **{}**\nCreated At - **{} ({})**".format(emoji.name, emoji.id, emoji.created_at.strftime("%A, %#d %B %Y, %I:%M %p"), timeago.format(datetime.now() - emoji.created_at)))
+		embed.add_field(name="Guild Info", value="Guild Name - **{}**\nGuild ID - **{}**".format(emoji.guild.name, emoji.guild_id))
+		embed.add_field(name="Features", value="Animated - {}\nAvailable - {}\nManaged by Twitch - {}\nRequires Colons - {}".format(tragedy.EmojiBool(emoji.animated), tragedy.EmojiBool(emoji.available), tragedy.EmojiBool(emoji.managed), tragedy.EmojiBool(emoji.require_colons)), inline=False)
+		temp = await ctx.reply(embed=embed, mention_author=True)
+		await asyncio.sleep(15)
+		await temp.delete()
+		await ctx.message.delete()
+
 	@commands.command(aliases=['pfp', 'avatar'])
 	@commands.cooldown(1, 5, type=BucketType.member)
 	async def av(self, ctx, member: discord.Member = None):
