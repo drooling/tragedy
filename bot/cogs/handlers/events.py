@@ -3,15 +3,15 @@
 import asyncio
 import sys
 import traceback
-from bot.resources.utilities import *
+from bot.utils import *
 from discord.colour import Color
 from discord.ext import commands
 import discord
 import logging
 import datetime
-import bot.resources.utilities as tragedy
+import bot.utils.utilities as tragedy
 import pymysql.cursors
-import bot.resources.utilities as tragedy
+import bot.utils.utilities as tragedy
 
 databaseConfig = pymysql.connect(
 	host=tragedy.dotenvVar("mysqlServer"),

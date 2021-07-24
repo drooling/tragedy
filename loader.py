@@ -4,7 +4,7 @@ import discord
 from discord.ext import commands
 import os
 from dislash import *
-import bot.resources.utilities as tragedy
+import bot.utils.utilities as tragedy
 import sys
 
 token = tragedy.dotenvVar("token")

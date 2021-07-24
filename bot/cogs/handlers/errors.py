@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import MissingPermissions, CheckFailure, CommandNotFound, NotOwner
 import asyncio
-import bot.resources.utilities as tragedy
+import bot.utils.utilities as tragedy
 
 
 class Errors(commands.Cog, name="on command error"):
@@ -11,7 +11,7 @@ class Errors(commands.Cog, name="on command error"):
 		
 	@commands.Cog.listener()
 	async def on_command_error(self, ctx: commands.Context, error:commands.CommandError):
-		if ctx.command.has_error_handler() == True:
+		if isinstance(error, NotOwner):
 			return
 		else:
 			if isinstance(error, NotOwner):
