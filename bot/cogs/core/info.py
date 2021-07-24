@@ -4,7 +4,8 @@ import asyncio
 from datetime import datetime
 
 from discord.enums import ActivityType
-import bot.resources.utilities as tragedy
+import bot.utils.utilities as tragedy
+from bot.utils.paginator import Paginator
 from discord.colour import Color
 from discord.ext import commands
 import discord
@@ -13,12 +14,12 @@ import timeago
 from discord.activity import *
 import aiohttp
 
-class Info(commands.Cog):
+class Info(commands.Cog, description="Commands that return information"):
 	def __init__(self, bot):
 		self.bot = bot
 		self.aiohttp = aiohttp.ClientSession()
 
-	@commands.command()
+	@commands.command(description="you know what this does dont play stupid", help="whois [member]")
 	@commands.cooldown(1, 5, type=BucketType.member)
 	async def whois(self, ctx, member: discord.Member = None):
 		member = member if member != None else ctx.author
@@ -39,7 +40,7 @@ class Info(commands.Cog):
 		await temp.delete()
 		await ctx.message.delete()
 
-	@commands.command(aliases=["guild", "si", "serverinfo", "guildinfo"])
+	@commands.command(aliases=["guild", "si", "serverinfo", "guildinfo"], description="returns info about current guild", help="serverinfo")
 	@commands.cooldown(1, 5, type=BucketType.member)
 	async def server(self, ctx):
 		findbots = sum(1 for member in ctx.guild.members if member.bot)
@@ -62,7 +63,7 @@ class Info(commands.Cog):
 		await temp.delete()
 		await ctx.message.delete()
 
-	@commands.command(name="emoji", aliases=["ei", "emojinfo"])
+	@commands.command(name="emoji", aliases=["ei", "emojinfo"], description="returns info about specified emoji", help="emoji <emoji>")
 	@commands.cooldown(1, 5, type=BucketType.member)
 	async def _emoji(self, ctx, emoji: discord.Emoji):
 		embed = discord.Embed(title = '**{}**'.format(emoji.name), colour = Color.green(), timestamp=datetime.utcnow())
@@ -75,7 +76,7 @@ class Info(commands.Cog):
 		await temp.delete()
 		await ctx.message.delete()
 
-	@commands.command(aliases=['pfp', 'avatar'])
+	@commands.command(aliases=['pfp', 'avatar'], description="you know what this does too", help="av [member]")
 	@commands.cooldown(1, 5, type=BucketType.member)
 	async def av(self, ctx, member: discord.Member = None):
 		member = member if member != None else ctx.author
@@ -91,76 +92,47 @@ class Info(commands.Cog):
 		await asyncio.sleep(15)
 		await temp.delete()
 		await ctx.message.delete()
-
-	@commands.command()
-	@commands.cooldown(1, 5, type=BucketType.member)
-	async def spotify(self, ctx, member: discord.Member = None):
-		target = member if member != None else ctx.author
-		try:
-			for activity in target.activities:
-				if isinstance(activity, Spotify):
-					embed = discord.Embed(title="Spotify", color=activity.color)
-					embed.set_author(name=target, icon_url="https://discord.com/assets/f0655521c19c08c4ea4e508044ec7d8c.png")
-					embed.set_thumbnail(url=activity.album_cover_url)
-					embed.add_field(name="Song Title", value=activity.title)
-					embed.add_field(name="Song Album", value=activity.album)
-					embed.add_field(name="Song Artist(s)", value=', '.join(activity.artists).removeprefix(', '), inline=False)
-					embed.add_field(name="Song Length", value="{}:{}".format((activity.duration.seconds % 3600) // 60, activity.duration.seconds % 60), inline=False)
-					embed.add_field(name="Party ID", value=activity.party_id)
-					embed.add_field(name="Track ID", value=activity.track_id)
-					temp = await ctx.reply(embed=embed, mention_author=True)
-					await asyncio.sleep(15)
-					await temp.delete()
-					await ctx.message.delete()
-				else:
-					pass
-			if "Spotify" not in str(target.activities):
-				ctx.command.reset_cooldown(ctx)
-				embed = discord.Embed(title="Error", description="That user is not listening to Spotify at the moment you silly goose.", color=Color.red())
-				temp = await ctx.reply(embed=embed, mention_author=True)
-				await asyncio.sleep(15)
-				await temp.delete()
-				await ctx.message.delete()
-		except Exception as exc:
-			tragedy.logError(exc)
 	
-	@commands.command()
+	@commands.command(description="returns specified member's status(es)", help="status [member]")
 	@commands.cooldown(1, 5, type=BucketType.member)
 	async def status(self, ctx, member: discord.Member = None):
 		target = member if member != None else ctx.author
+		embeds = list()
 		try:
 			for activity in target.activities:
 				if isinstance(activity, Spotify):
-					embed = discord.Embed(title="Spotify", color=activity.color)
-					embed.set_author(name=target, icon_url="https://discord.com/assets/f0655521c19c08c4ea4e508044ec7d8c.png")
-					embed.set_thumbnail(url=activity.album_cover_url)
-					embed.add_field(name="Song Title", value=activity.title)
-					embed.add_field(name="Song Album", value=activity.album)
-					embed.add_field(name="Song Artist(s)", value=', '.join(activity.artists).removeprefix(', '), inline=False)
-					embed.add_field(name="Song Length", value="{}:{}".format((activity.duration.seconds % 3600) // 60, activity.duration.seconds % 60), inline=False)
-					embed.add_field(name="Party ID", value=activity.party_id)
-					embed.add_field(name="Track ID", value=activity.track_id)
-					await ctx.reply(embed=embed, mention_author=True)
+					embedSpotify = discord.Embed(title="Spotify", color=activity.color)
+					embedSpotify.set_author(name=target, icon_url="https://discord.com/assets/f0655521c19c08c4ea4e508044ec7d8c.png")
+					embedSpotify.set_thumbnail(url=activity.album_cover_url)
+					embedSpotify.add_field(name="Song Title", value=activity.title)
+					embedSpotify.add_field(name="Song Album", value=activity.album)
+					embedSpotify.add_field(name="Song Artist(s)", value=', '.join(activity.artists).removeprefix(', '), inline=False)
+					embedSpotify.add_field(name="Song Length", value="{}:{}".format((activity.duration.seconds % 3600) // 60, activity.duration.seconds % 60), inline=False)
+					embedSpotify.add_field(name="Party ID", value=activity.party_id)
+					embedSpotify.add_field(name="Track ID", value=activity.track_id)
+					embeds.append(embedSpotify)
 				if isinstance(activity, CustomActivity):
-					embed = discord.Embed(title=target, color=Color.green(), description=activity.name)
-					await ctx.reply(embed=embed, mention_author=True)
+					embedCustom = discord.Embed(title="{}#{} Custom Status".format(target.name, target.discriminator), color=Color.green(), description=("```{} {}```".format(activity.emoji, activity.name)) if activity.emoji != None else activity.name)
+					embeds.append(embedCustom)
 				if isinstance(activity, Game):
-					embed = discord.Embed(title=target, color=Color.green(), description=activity.name)
-					embed.add_field(name="Playing", value=activity.name)
-					await ctx.reply(embed=embed, mention_author=True)
+					embedGame = discord.Embed(title=target, color=Color.green(), description=activity.name)
+					embedGame.add_field(name="Playing", value=activity.name)
+					embeds.append(embedGame)
 				if isinstance(activity, Streaming):
-					embed = discord.Embed(title="Streaming on [{}]({})".format(activity.platform, activity.url), color=Color.green())
-					embed.add_field(name="Playing", value=activity.game)
-					embed.add_field(name="Details", value=activity.details)
+					embedStream = discord.Embed(title="Streaming on [{}]({})".format(activity.platform, activity.url), color=Color.green())
+					embedStream.add_field(name="Playing", value=activity.game)
+					embedStream.add_field(name="Details", value=activity.details)
 					if activity.platform == "Twitch":
-						embed.add_field(name="Twitch Profile", value="https://www.twitch.tv/{}".format(activity.twitch_name))
-					await ctx.reply(embed=embed, mention_author=True)
+						embedStream.add_field(name="Twitch Profile", value="https://www.twitch.tv/{}".format(activity.twitch_name))
+					embeds.append(embedStream)
 				else:
 					pass
+			paginate = Paginator(self.bot, ctx, embeds)
+			await paginate.run()
 		except Exception as exc:
 			tragedy.logError(exc)
 
-	@commands.command()
+	@commands.command(description="returns weather in specified place", help="weather <location>")
 	@commands.cooldown(1, 5, type=BucketType.member)
 	async def weather(self, ctx, *, location: str=None):
 		if location is None:
@@ -186,10 +158,10 @@ class Info(commands.Cog):
 					await ctx.reply(embed=embed, mention_author=True)
 			except KeyError as exc:
 				tragedy.logError(exc)
-				await ctx.send('that aint even a place bro bro :thinking:')
+				await ctx.send('that aint even a place bro bro :thinking:\nor yo stooopid ahhh typed it wrong')
 				pass
 				
-	@commands.command()
+	@commands.command(description="returns recommended bitcoin fees", help="fees")
 	@commands.cooldown(1, 5, BucketType.member)
 	async def fees(self, ctx):
 		async with self.aiohttp.get("https://mempool.space/api/v1/fees/recommended") as response:
@@ -200,7 +172,7 @@ class Info(commands.Cog):
 			embed.add_field(name="Hour", value=parse["hourFee"], inline=False)
 			await ctx.reply(embed=embed, mention_author=True)
 
-	@commands.command(aliases=["crypto", "price", "cryptos"])
+	@commands.command(aliases=["crypto", "price", "cryptos"], description="Returns current price of BTC, ETH, and XMR", help="prices")
 	@commands.cooldown(1, 5, BucketType.member)
 	async def prices(self, ctx):
 		async with self.aiohttp.get("https://min-api.cryptocompare.com/data/price?fsym=BTC&tsyms=USD,EUR,CAD") as BTC:

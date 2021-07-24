@@ -7,13 +7,13 @@ import json
 import aiohttp
 from discord.ext.commands.cooldowns import BucketType
 import asyncio
-import bot.resources.utilities as tragedy
+import bot.utils.utilities as tragedy
 
-class Nsfw(commands.Cog):
+class Nsfw(commands.Cog, description="porn"):
 	def __init__(self, bot):
 		self.bot = bot
 	
-	@commands.command()
+	@commands.command(description="porn", help="nsfw <category>")
 	@commands.is_nsfw()
 	@commands.cooldown(1, 3, type=BucketType.member)
 	async def nsfw(self, ctx, *, type):

@@ -8,7 +8,7 @@ from discord.ext import commands
 import discord
 from discord.ext.commands.cooldowns import BucketType
 import pymysql.cursors
-import bot.resources.utilities as tragedy
+import bot.utils.utilities as tragedy
 
 databaseConfig = pymysql.connect(
 	host=tragedy.dotenvVar("mysqlServer"),
@@ -26,11 +26,11 @@ databaseConfig = pymysql.connect(
 
 cursor = databaseConfig.cursor()
 
-class Mod(commands.Cog):
+class Mod(commands.Cog, description="Commands to moderate your server !"):
 	def __init__(self, bot):
 		self.bot = bot
 
-	@commands.command(ignore_extra=True)
+	@commands.command(ignore_extra=True, aliases=["changeprefix", "changepref"], description="chenges tragedy's prefix for this server", help="prefix <prefix>")
 	@commands.guild_only()
 	@commands.has_permissions(manage_guild=True)
 	async def prefix(self, ctx, prefix: str):
@@ -46,7 +46,7 @@ class Mod(commands.Cog):
 			embed = discord.Embed(title="Error", description="Failed to change prefix", color=Color.red())
 			await ctx.reply(embed=embed)
 
-	@commands.command(ignore_extra=True)
+	@commands.command(ignore_extra=True, description="kicks specified member from server", help="kick <member> [reason]")
 	@commands.guild_only()
 	@commands.has_permissions(kick_members=True)
 	@commands.bot_has_guild_permissions(kick_members=True)
@@ -56,7 +56,10 @@ class Mod(commands.Cog):
 			try:
 				await member.kick("Kicked by {}".format(ctx.author))
 				await ctx.reply(embed=discord.Embed(title="Member Kicked", description="{} was kicked by {} for an unspecified reason.".format(member, ctx.author), color=discord.Color.green()))
-				await member.send(embed=discord.Embed(title="You Were Kicked", description="You were kicked from {} by {} for an unspecified reason.".format(ctx.message.guild.name, ctx.author), color=discord.Color.green()))
+				try:
+					await member.send(embed=discord.Embed(title="You Were Kicked", description="You were kicked from {} by {} for an unspecified reason.".format(ctx.message.guild.name, ctx.author), color=discord.Color.green()))
+				except:
+					pass
 				return
 			except Exception as exc:
 				tragedy.logError(exc)
@@ -64,12 +67,15 @@ class Mod(commands.Cog):
 			try:
 				await member.kick(reason="Kicked by {} for \"{}\"".format(ctx.author, reason))
 				await ctx.reply(embed=discord.Embed(title="Member Kicked", description="{} was kicked by {} for \"{}\".".format(member, ctx.author, reason), color=discord.Color.green()))
-				await member.send(embed=discord.Embed(title="You Were Kicked", description="You were kicked from {} by {} for \"{}\".".format(ctx.guild.name, ctx.author, reason), color=discord.Color.green()))
+				try:
+					await member.send(embed=discord.Embed(title="You Were Kicked", description="You were kicked from {} by {} for \"{}\".".format(ctx.guild.name, ctx.author, reason), color=discord.Color.green()))
+				except:
+					pass
 				return
 			except Exception as exc:
 				tragedy.logError(exc)
 
-	@commands.command(ignore_extra=True)
+	@commands.command(ignore_extra=True, description="bans specified member from server", help="ban <member> [reason]")
 	@commands.guild_only()
 	@commands.has_permissions(ban_members=True)
 	@commands.bot_has_guild_permissions(ban_members=True)
@@ -99,13 +105,13 @@ class Mod(commands.Cog):
 				await ctx.reply(embed=discord.Embed(title="Error", description="Unable to ban member", color=discord.Color.red()))
 				tragedy.logError(exc)
 
-	@commands.command(ignore_extra=True)
+	@commands.command(ignore_extra=True, description="delete's specified amount of messages from channel", help="purge <amount>")
 	@commands.guild_only()
 	@commands.has_permissions(manage_messages=True)
 	@commands.bot_has_guild_permissions(manage_messages=True)
 	@commands.cooldown(1, 15, type=BucketType.member)
-	async def purge(self, ctx, *args):
-		for arg in args:
+	async def purge(self, ctx, *amount):
+		for arg in amount:
 			if arg.lower() == "all":
 				await ctx.channel.purge(bulk=True, limit=999999999999999999)
 				try:
@@ -125,7 +131,7 @@ class Mod(commands.Cog):
 				except Exception as exc:
 					tragedy.logError(exc)
 
-	@commands.command()
+	@commands.command(description="lock's specified channel from specified role/everyone", help="lock [channel] [role]")
 	@commands.guild_only()
 	@commands.has_permissions(manage_channels=True)
 	@commands.bot_has_permissions(manage_channels=True)

@@ -9,8 +9,7 @@ import contextlib
 class HelpEmbed(discord.Embed):
 	def __init__(self, **kwargs):
 		super().__init__(**kwargs)
-		self.timestamp = datetime.datetime.utcnow()
-		text = "Use help [command] or help [category] for more information | <> is required | [] is optional"
+		text = "Use help [command] or help [category] for more information | <required> - [optional]"
 		self.set_footer(text=text)
 		self.color = Color.green()
 
@@ -39,31 +38,29 @@ class Help(commands.HelpCommand):
 				if cog:
 					name = cog.qualified_name
 					description = cog.description or "No description"
+					embed.add_field(name=f"{name} [{amount_commands}]", value=description, inline=False)
 				else:
-					name = "Not Sorted"
-					description = "Commands that are not sorted into a category"
-
-				embed.add_field(name=f"{name} [{amount_commands}]", value=description, inline=False)
+					pass
 
 		embed.description = f"{usable} commands" 
 		await self.send(embed=embed)
 
 	async def send_command_help(self, command):
 		signature = self.get_command_signature(command)
-		embed = HelpEmbed(title=signature, description=command.help or "No Help Specified By Developer")
+		embed = HelpEmbed(title=signature, description="```{}```".format(command.description or "No Description Specified By Developer"))
 
 		if cog := command.cog:
-			embed.add_field(name="Category", value=cog.qualified_name, inline=False)
+			embed.add_field(name="Category", value=cog.qualified_name)
 
 		can_run = "No"
 		with contextlib.suppress(commands.CommandError):
 			if await command.can_run(self.context):
 				can_run = "Yes"
 			
-		embed.add_field(name="Enabled?", value=can_run, inline=False)
+		embed.add_field(name="Enabled?", value=can_run)
 
 		if command._buckets and (cooldown := command._buckets._cooldown):
-			embed.add_field(name="Cooldown", value=f"{cooldown.rate} per {cooldown.per:.0f} seconds", inline=False)
+			embed.add_field(name="Cooldown", value=f"{cooldown.rate} per {cooldown.per:.0f} seconds")
 
 		await self.send(embed=embed)
 
@@ -72,7 +69,7 @@ class Help(commands.HelpCommand):
 
 		if filtered_commands := await self.filter_commands(commands):
 			for command in filtered_commands:
-				embed.add_field(name=self.get_command_signature(command), value=command.help or "No Help Specified By Developer")
+				embed.add_field(name=command.name, value=command.description or "No Description Specified By Developer")
 		   
 		await self.send(embed=embed)
 

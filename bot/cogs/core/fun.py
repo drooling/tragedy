@@ -11,12 +11,12 @@ import random
 import io
 
 
-class Fun(commands.Cog):
+class Fun(commands.Cog, description="Fun commands to make discord just a bit better !"):
 	def __init__(self, bot):
 		self.bot = bot
 		self.aiohttp = aiohttp.ClientSession()
 
-	@commands.command()
+	@commands.command(description="Searches for specified phrase on urbandictionary.com", help="urban <phrase>")
 	@commands.cooldown(1, 5, type=BucketType.member)
 	async def urban(self, ctx, *, phrase):
 		async with aiohttp.ClientSession() as requests:
@@ -33,7 +33,7 @@ class Fun(commands.Cog):
 				except:
 					pass
 
-	@commands.command()
+	@commands.command(description="Finds synonym(s) for the specified word", help="synonym <word>")
 	@commands.cooldown(1, 5, type=BucketType.member)
 	async def synonym(self, ctx:commands.Context, *, word: str):
 		async with self.aiohttp.get("https://word-simi.herokuapp.com/api/v1/most_similar/{}?count=5".format(word)) as x:
@@ -43,7 +43,7 @@ class Fun(commands.Cog):
 				embed.add_field(name="\u200b", value="**{}**".format(parse["result"][_index]["word"]), inline=False)
 			await ctx.send(embed=embed)
 
-	@commands.command()
+	@commands.command(description="Shortens specified url with 3 different url shorteners", help="shorten <url>")
 	@commands.cooldown(1, 5, type=BucketType.member)
 	async def shorten(self, ctx:commands.Context, *, url: str):
 		async with ctx.typing():
@@ -57,36 +57,7 @@ class Fun(commands.Cog):
 						embed.add_field(name="Shortened URL (tinyurl.com)", value=await tiny.text(), inline=False)
 		await ctx.reply(embed=embed, mention_author=True)
 
-	@commands.command(aliases=["deepfry", "deepfried"])
-	@commands.cooldown(1, 5, type=BucketType.member)
-	async def fry(self, ctx, user: discord.Member = None):
-		if user is None:
-			async with self.aiohttp.get("https://nekobot.xyz/api/imagegen?type=deepfry&image={}".format(str(ctx.author.avatar_url_as(format="png")))) as r:
-				res = await r.json()
-				embed = discord.Embed(title="Deep Fried {} !".format(ctx.author.name), color=discord.Color.green()).set_image(url=res['message'])
-				await ctx.reply(embed=embed, mention_author=True)
-		else:
-			async with self.aiohttp.get("https://nekobot.xyz/api/imagegen?type=deepfry&image={}".format(str(user.avatar_url_as(format="png")))) as r:
-				res = await r.json()
-				embed = discord.Embed(title="Deep Fried {} !".format(user.display_name), color=discord.Color.green()).set_image(url=res['message'])
-				await ctx.reply(embed=embed, mention_author=True)
-
-	@commands.command()
-	@commands.cooldown(1, 5, BucketType.member)
-	async def obama(self, ctx, *, message: str):
-		form_data = aiohttp.FormData()
-		form_data.add_field("input_text", message)
-		async with self.aiohttp.post("http://talkobamato.me", data=form_data) as request:
-			key = request.url.query["speech_key"]
-			direct = "http://www.talkobamato.me/synth/output/{}/obama.mp4".format(key)
-			async with self.aiohttp.get(direct) as video:
-				file = io.BytesIO(bytes(await video.read()))
-				sendFile = discord.File(file, filename="linktr.ee_incriminating.mp4")
-				file.flush()
-				file.close()
-				await ctx.reply(file=sendFile)
-
-	@commands.command(aliases=["guessgame", "smiley", "find"])
+	@commands.command(aliases=["guessgame", "smiley", "find"], description="Find the smiley face game", help="guess")
 	@commands.cooldown(1, 5, BucketType.member)
 	async def guess(self, ctx):
 		probabilityList = ["||:bomb:||", "||:smiley:||", "||:bomb:||", "||:bomb:||", "||:bomb:||", "||:bomb:||", "||:bomb:||", "||:bomb:||", "||:bomb:||", "||:bomb:||"]
@@ -94,7 +65,7 @@ class Fun(commands.Cog):
 		embed = discord.Embed(color=discord.Colour.red(), title="Find The Smiley !", description=' '.join(probabilityList))
 		await ctx.send(embed=embed)
 
-	@commands.command(aliases=["bubbles", "wrap", "pop"])
+	@commands.command(aliases=["bubbles", "wrap", "pop"], description="It's just bubble wrap", help="bubblewrap")
 	@commands.cooldown(1, 5, BucketType.member)
 	async def bubblewrap(self, ctx):
 		wrap = ("||:boom:|| " * 9 + '\n') * 9

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 from discord.activity import Spotify
-import bot.resources.utilities as tragedy
+import bot.utils.utilities as tragedy
 import asyncio
 from datetime import datetime
 from discord.colour import Color
@@ -35,9 +35,7 @@ class Slash(commands.Cog, command_attrs=dict(hidden=True)):
 		embed.add_field(name="Flags", value="{} - Discord Staff\n{} - Discord Partner\n{} - Verified Bot Developer".format(tragedy.EmojiBool(member.public_flags.staff), tragedy.EmojiBool(member.public_flags.partner), tragedy.EmojiBool(member.public_flags.verified_bot_developer)))
 		#embed.add_field(name="Other Info", value="HypeSquad House - {}\nUser has Nitro - {}\nConnected Accounts - {}".format(str(userProfile.hypesquad_houses).title(), tragedy.EmojiBool(await userProfile.nitro), ', '.join(externalAccounts).removeprefix(', ') if externalAccounts != [] else "None")) User profile has been depracated since v1.7
 		embed.set_footer(icon_url=ctx.author.avatar_url, text='Requested By: {}'.format(ctx.author.name))
-		temp = await ctx.reply(embed=embed, mention_author=True)
-		await asyncio.sleep(15)
-		await temp.delete()
+		await ctx.send(embed=embed)
 
 	@slash_commands.command(
 		name="avatar",
@@ -56,10 +54,7 @@ class Slash(commands.Cog, command_attrs=dict(hidden=True)):
 		embed = discord.Embed(color=Color.green(), description="**[ [128]({}) ] - [ [256]({}) ] - [ 512 ] - [ [1024]({}) ] - [ [2048]({}) ]**".format(_128, _256, _1024, _2048))
 		embed.set_image(url=_512)
 		embed.set_footer(text="{}'s Avatar (512 x 512)".format(member))
-		temp = await ctx.reply(embed=embed, mention_author=True)
-		await asyncio.sleep(15)
-		await temp.delete()
-		await ctx.message.delete()
+		await ctx.send(embed=embed)
 
 	@slash_commands.command(
 		name="serverinfo",
@@ -81,9 +76,7 @@ class Slash(commands.Cog, command_attrs=dict(hidden=True)):
 		embed.add_field(name = "Other Info", value="AFK Channel: **{}**\n AFK Timeout: **{} minute(s)**\nCustom Emojis: **{}**\nRole Count: **{}**\nFilesize Limit - **{}**".format(ctx.guild.afk_channel, str(ctx.guild.afk_timeout / 60), len(ctx.guild.emojis), len(ctx.guild.roles), tragedy.humansize(ctx.guild.filesize_limit)), inline=False)
 		embed.add_field(name = "Server Features", value="{} - Banner\n{}\n{} - Splash Invite\n{} - Animated Icon\n{} - Server Discoverable".format(tragedy.EmojiBool(banner), vanityFeature, tragedy.EmojiBool(splash), tragedy.EmojiBool(animicon), tragedy.EmojiBool(discoverable)))
 		embed.add_field(name = "Nitro Info", value="Number of Boosts - **{}**\nBooster Role - **{}**\nBoost Level/Tier - **{}**".format(str(ctx.guild.premium_subscription_count), ctx.guild.premium_subscriber_role.mention if ctx.guild.premium_subscriber_role != None else ctx.guild.premium_subscriber_role, ctx.guild.premium_tier))
-		temp = await ctx.reply(embed=embed, mention_author=True)
-		await asyncio.sleep(15)
-		await temp.delete()
+		await ctx.send(embed=embed)
 
 
 def setup(bot):
