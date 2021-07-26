@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
-from discord.activity import Spotify
+from random import choices
+from bot.utils.paginator import Paginator
+from discord.activity import CustomActivity, Game, Spotify, Streaming
 import bot.utils.utilities as tragedy
 import asyncio
 from datetime import datetime
@@ -21,8 +23,7 @@ class Slash(commands.Cog, command_attrs=dict(hidden=True)):
 			Option("member", "Specify any user", Type.USER, required=True),
 		]
 	)
-	async def whois(self, ctx, member: discord.Member = None):
-		member = member if member != None else ctx.author
+	async def whois(self, ctx, member: discord.Member):
 		joinPosition = sum(m.joined_at < member.joined_at for m in ctx.guild.members if m.joined_at is not None)
 		roleNameList = list(role.mention for role in member.roles if role != ctx.guild.default_role)
 		#userProfile = await member.profile() User profile has been depracated since v1.7
@@ -39,9 +40,28 @@ class Slash(commands.Cog, command_attrs=dict(hidden=True)):
 
 	@slash_commands.command(
 		name="avatar",
+		description="Return specified user's avatar (pfp)",
+		options=[
+			Option("member", "Specify any user", Type.USER, required=True),
+		]
+	)
+	@commands.cooldown(1, 5, type=BucketType.member)
+	async def av(self, ctx, member: discord.Member):
+		_128 = member.avatar_url_as(format='png', size=128)
+		_256 = member.avatar_url_as(format='png', size=256)
+		_512 = member.avatar_url_as(format='png', size=512)
+		_1024 = member.avatar_url_as(format='png', size=1024)
+		_2048 = member.avatar_url_as(format='png', size=2048)
+		embed = discord.Embed(color=Color.green(), description="**[ [128]({}) ] - [ [256]({}) ] - [ 512 ] - [ [1024]({}) ] - [ [2048]({}) ]**".format(_128, _256, _1024, _2048))
+		embed.set_image(url=_512)
+		embed.set_footer(text="{}'s Avatar (512 x 512)".format(member))
+		await ctx.send(embed=embed)
+
+	@slash_commands.command(
+		name="avatar",
 		description="Returns specified user's avatar (pfp)",
 		options=[
-			Option("member", "Specify any user", Type.USER, required=False),
+			Option("member", "Specify any user", Type.USER, required=True),
 		]
 	)
 	async def avatar(self, ctx, member: discord.Member = None):
@@ -60,7 +80,7 @@ class Slash(commands.Cog, command_attrs=dict(hidden=True)):
 		name="serverinfo",
 		description="Gives details about current guild"
 	)
-	async def server(self, ctx):
+	async def serverinfo(self, ctx):
 		findbots = sum(1 for member in ctx.guild.members if member.bot)
 		vanity = "VANITY_URL" in str(ctx.guild.features)
 		splash = "INVITE_SPLASH" in str(ctx.guild.features)

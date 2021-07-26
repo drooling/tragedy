@@ -24,19 +24,18 @@ class Errors(commands.Cog, name="on command error"):
 				embed = discord.Embed(title="Error", description="That command is disabled at the moment you silly goose", color=discord.Color.red())
 				temp = await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, CommandNotFound):
-				embed = discord.Embed(title="Error", description="That command does not exist you silly goose", color=discord.Color.red())
-				temp = await ctx.reply(embed=embed, mention_author=True)
+				pass
 			elif isinstance(error, MissingPermissions):
-				embed = discord.Embed(title="Error", description="That command required permissions ({}) you do not possess you silly goose".format(' and '.join(error.missing_perms).removeprefix("and ")), color=discord.Color.red())
+				embed = discord.Embed(title="Error", description="That command required permissions ({}) you do not possess you silly goose".format(' and '.join(error.missing_perms).removeprefix(" and ")), color=discord.Color.red())
 				temp = await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, commands.BotMissingPermissions):
-				embed = discord.Embed(title="Error", description="I need the \"{}\" permission to do that".format(' and '.join(error.missing_perms).removeprefix("and ")), color=discord.Color.red())
+				embed = discord.Embed(title="Error", description="I need the \"{}\" permission(s) to do that".format(' and '.join(error.missing_perms).removeprefix(" and ")), color=discord.Color.red())
 				temp = await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, CheckFailure):
-				embed = discord.Embed(title="Error", description="That command requires roles/permissions you do not possess you silly goose", color=discord.Color.red())
+				embed = discord.Embed(title="Error", description="{} you silly goose".format(" and ".join(error.args).removeprefix(" and ")), color=discord.Color.red())
 				temp = await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, commands.BadArgument):
-				embed = discord.Embed(title="Error", description="You supplied an invalid arguments ({}) you silly goose".format(' and '.join(error.param).removeprefix("and ")), color=discord.Color.red())
+				embed = discord.Embed(title="Error", description="{} you silly goose".format(" and ".join(error.args).removeprefix(" and ")), color=discord.Color.red())
 				temp = await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, commands.MissingRequiredArgument):
 				embed = discord.Embed(title="Error", description="You're missing the \"{}\" argument you silly goose".format(error.param), color=discord.Color.red())

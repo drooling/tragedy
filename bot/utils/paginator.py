@@ -45,9 +45,7 @@ class Paginator:
 
     async def session_end(self):
         self.paginating = False
-        for emoji in EMOJIS:
-            await self.message.remove_reaction(emoji, self.bot.user)
-            await self.message.remove_reaction(emoji, self.ctx.author) 
+        await self.message.clear_reactions()
 
     def check(self, reaction, user):
         if reaction.emoji in EMOJIS:

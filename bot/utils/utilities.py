@@ -9,6 +9,7 @@ import pprint
 import pymysql.cursors
 from dotenv import load_dotenv
 import os
+from math import floor
 
 load_dotenv(".env")
 
@@ -75,7 +76,7 @@ def custom_prefix(bot, message):
 			logError(exc)
 
 def randomString(length):
-	components = string.ascii_lowercase
+	components = list(string.ascii_lowercase)
 	randString = ''.join(random.choice(components) in range(length))
 	return randString
 
@@ -86,6 +87,22 @@ def logError(exception: Exception):
 	pprint.pprint(exception, stream=debugFile)
 	debugFile.close()
 	logging.log(logging.ERROR, "Exception was thrown, to see more details open /debug/exceptions.log")
+
+def wrap(font, text, line_width): # https://github.com/DankMemer/imgen/blob/master/utils/textutils.py (useful asf so i stole it not even gonna cap w you)
+    words = text.split()
+    lines = []
+    line = []
+    for word in words:
+        newline = ' '.join(line + [word])
+        width, height = font.getsize(newline)
+        if width > line_width:
+            lines.append(' '.join(line))
+            line = [word]
+        else:
+            line.append(word)
+    if line:
+        lines.append(' '.join(line))
+    return ('\n'.join(lines)).strip()
 
 while __name__ == "__main__":
 	try:

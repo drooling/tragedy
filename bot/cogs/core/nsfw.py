@@ -17,7 +17,7 @@ class Nsfw(commands.Cog, description="porn"):
 	@commands.is_nsfw()
 	@commands.cooldown(1, 3, type=BucketType.member)
 	async def nsfw(self, ctx, *, type):
-		with open("./resources/nsfw.json", "r") as urls:
+		with open("./assets/nsfw.json", "r") as urls:
 			try:
 				jObj = json.load(urls)
 				query = jObj[type.replace(' ', '_')]

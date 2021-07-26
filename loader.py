@@ -15,7 +15,7 @@ class Initiate(commands.Cog):
 		self._last_member = None
 
 
-bot = commands.AutoShardedBot(tragedy.custom_prefix or "xv ", intents=discord.Intents.all(), case_insensitive=True, strip_after_prefix=True, loop=asyncio.get_event_loop() , activity=discord.Activity(name="https://linktr.ee/incriminating", type=discord.ActivityType.watching), status=discord.Status.dnd)
+bot = commands.AutoShardedBot(tragedy.custom_prefix or "xv ", intents=discord.Intents.all(), case_insensitive=True, strip_after_prefix=True, loop=asyncio.get_event_loop() , activity=discord.Activity(name="linktr.ee/incriminating", type=discord.ActivityType.watching), status=discord.Status.dnd)
 slash = SlashClient(bot)
 
 logger = logging.getLogger('discord')

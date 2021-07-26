@@ -4,7 +4,7 @@
 **/__pycache__
 **/secret
 **/debug
-**/resources/authorized.json
-**/resources/pack.json
+**/assets/authorized.json
+**/assets/pack.json
 **/_environment
 **/.vscode

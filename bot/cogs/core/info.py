@@ -2,23 +2,24 @@
 
 import asyncio
 from datetime import datetime
+import re
 
-from discord.enums import ActivityType
 import bot.utils.utilities as tragedy
 from bot.utils.paginator import Paginator
 from discord.colour import Color
 from discord.ext import commands
 import discord
 from discord.ext.commands.cooldowns import BucketType
-import timeago
 from discord.activity import *
 import aiohttp
+import humanize
+import dateutil.parser
 
 class Info(commands.Cog, description="Commands that return information"):
 	def __init__(self, bot):
 		self.bot = bot
 		self.aiohttp = aiohttp.ClientSession()
-
+	
 	@commands.command(description="you know what this does dont play stupid", help="whois [member]")
 	@commands.cooldown(1, 5, type=BucketType.member)
 	async def whois(self, ctx, member: discord.Member = None):
@@ -29,7 +30,7 @@ class Info(commands.Cog, description="Commands that return information"):
 		#externalAccounts = list("Type: {} - Username: {}".format(external.get("type", "Error"), external.get("name", "Error")) for external in await userProfile.connected_accounts) User profile has been depracated since v1.7
 		embed = discord.Embed(color=Color.green(), timestamp=datetime.utcnow())
 		embed.set_author(name="{} ({})".format(member, member.id), icon_url=member.avatar_url)
-		embed.add_field(name="Basic Info", value="Joined Server At - **{} (Around {})**\nRegistered on Discord At - **{} (Around {})**".format(member.joined_at.strftime("%A, %#d %B %Y, %I:%M %p"), timeago.format(datetime.now() - member.joined_at), member.created_at.strftime('%A, %#d %B %Y, %I:%M %p'), timeago.format(datetime.now() - member.created_at)))
+		embed.add_field(name="Basic Info", value="Joined Server At - **{} (Around {})**\nRegistered on Discord At - **{} (Around {})**".format(member.joined_at.strftime("%A, %#d %B %Y, %I:%M %p"), humanize.naturaldelta(datetime.now() - member.joined_at), member.created_at.strftime('%A, %#d %B %Y, %I:%M %p'), humanize.naturaldelta(datetime.now() - member.created_at)))
 		embed.add_field(name="Status Info", value="Desktop Status - **{}**\nMobile Status - **{}**\nWeb Application Status - **{}**".format(tragedy.humanStatus(str(member.desktop_status)), tragedy.humanStatus(str(member.mobile_status)), tragedy.humanStatus(str(member.web_status))), inline=False)
 		embed.add_field(name="Role Info", value="Top Role - {}\nRole(s) - {}".format(member.top_role.mention if member.top_role != ctx.guild.default_role else "None", ', '.join(roleNameList).removesuffix(', ') if roleNameList != [] else "None"), inline=False)
 		embed.add_field(name="Flags", value="{} - Discord Staff\n{} - Discord Partner\n{} - Verified Bot Developer".format(tragedy.EmojiBool(member.public_flags.staff), tragedy.EmojiBool(member.public_flags.partner), tragedy.EmojiBool(member.public_flags.verified_bot_developer)))
@@ -55,7 +56,7 @@ class Info(commands.Cog, description="Commands that return information"):
 		embed.add_field(name = "Members", value="Bots: **{}**\nHumans: **{}**\nOnline Members: **{}/{}**".format(str(findbots), ctx.guild.member_count - findbots, sum(member.status!=discord.Status.offline and not member.bot for member in ctx.guild.members), str(ctx.guild.member_count)))
 		embed.add_field(name = "Channels", value=":speech_balloon: Text Channels: **{}**\n:loud_sound: Voice Channels: **{}**".format(len(ctx.guild.text_channels), len(ctx.guild.voice_channels)))
 		embed.add_field(name = "Important Info", value="Owner: {}\nVerification Level: **{}**\nGuild ID: **{}**".format(ctx.guild.owner.mention, str(ctx.guild.verification_level).title(), ctx.guild.id), inline=False)
-		embed.add_field(name = "Other Info", value="AFK Channel: **{}**\n AFK Timeout: **{} minute(s)**\nCustom Emojis: **{}**\nRole Count: **{}**\nFilesize Limit - **{}**".format(ctx.guild.afk_channel, str(ctx.guild.afk_timeout / 60), len(ctx.guild.emojis), len(ctx.guild.roles), tragedy.humansize(ctx.guild.filesize_limit)), inline=False)
+		embed.add_field(name = "Other Info", value="AFK Channel: **{}**\n AFK Timeout: **{} minute(s)**\nCustom Emojis: **{}**\nRole Count: **{}**\nFilesize Limit - **{}**".format(ctx.guild.afk_channel, str(ctx.guild.afk_timeout / 60), len(ctx.guild.emojis), len(ctx.guild.roles), humanize.naturalsize(ctx.guild.filesize_limit)), inline=False)
 		embed.add_field(name = "Server Features", value="{} - Banner\n{}\n{} - Splash Invite\n{} - Animated Icon\n{} - Server Discoverable".format(tragedy.EmojiBool(banner), vanityFeature, tragedy.EmojiBool(splash), tragedy.EmojiBool(animicon), tragedy.EmojiBool(discoverable)))
 		embed.add_field(name = "Nitro Info", value="Number of Boosts - **{}**\nBooster Role - **{}**\nBoost Level/Tier - **{}**".format(str(ctx.guild.premium_subscription_count), ctx.guild.premium_subscriber_role.mention if ctx.guild.premium_subscriber_role != None else ctx.guild.premium_subscriber_role, ctx.guild.premium_tier))
 		temp = await ctx.reply(embed=embed, mention_author=True)
@@ -68,7 +69,7 @@ class Info(commands.Cog, description="Commands that return information"):
 	async def _emoji(self, ctx, emoji: discord.Emoji):
 		embed = discord.Embed(title = '**{}**'.format(emoji.name), colour = Color.green(), timestamp=datetime.utcnow())
 		embed.set_thumbnail(url=str(emoji.url))
-		embed.add_field(name="Basic Info", value="Emoji Name - **{}**\nEmoji ID - **{}**\nCreated At - **{} ({})**".format(emoji.name, emoji.id, emoji.created_at.strftime("%A, %#d %B %Y, %I:%M %p"), timeago.format(datetime.now() - emoji.created_at)))
+		embed.add_field(name="Basic Info", value="Emoji Name - **{}**\nEmoji ID - **{}**\nCreated At - **{} ({})**".format(emoji.name, emoji.id, emoji.created_at.strftime("%A, %#d %B %Y, %I:%M %p"), humanize.naturaldelta(datetime.now() - emoji.created_at)))
 		embed.add_field(name="Guild Info", value="Guild Name - **{}**\nGuild ID - **{}**".format(emoji.guild.name, emoji.guild_id))
 		embed.add_field(name="Features", value="Animated - {}\nAvailable - {}\nManaged by Twitch - {}\nRequires Colons - {}".format(tragedy.EmojiBool(emoji.animated), tragedy.EmojiBool(emoji.available), tragedy.EmojiBool(emoji.managed), tragedy.EmojiBool(emoji.require_colons)), inline=False)
 		temp = await ctx.reply(embed=embed, mention_author=True)
@@ -92,7 +93,7 @@ class Info(commands.Cog, description="Commands that return information"):
 		await asyncio.sleep(15)
 		await temp.delete()
 		await ctx.message.delete()
-	
+
 	@commands.command(description="returns specified member's status(es)", help="status [member]")
 	@commands.cooldown(1, 5, type=BucketType.member)
 	async def status(self, ctx, member: discord.Member = None):
@@ -102,14 +103,13 @@ class Info(commands.Cog, description="Commands that return information"):
 			for activity in target.activities:
 				if isinstance(activity, Spotify):
 					embedSpotify = discord.Embed(title="Spotify", color=activity.color)
+					embedSpotify.url = "https://open.spotify.com/track/{}".format(activity.track_id)
 					embedSpotify.set_author(name=target, icon_url="https://discord.com/assets/f0655521c19c08c4ea4e508044ec7d8c.png")
 					embedSpotify.set_thumbnail(url=activity.album_cover_url)
 					embedSpotify.add_field(name="Song Title", value=activity.title)
 					embedSpotify.add_field(name="Song Album", value=activity.album)
 					embedSpotify.add_field(name="Song Artist(s)", value=', '.join(activity.artists).removeprefix(', '), inline=False)
-					embedSpotify.add_field(name="Song Length", value="{}:{}".format((activity.duration.seconds % 3600) // 60, activity.duration.seconds % 60), inline=False)
-					embedSpotify.add_field(name="Party ID", value=activity.party_id)
-					embedSpotify.add_field(name="Track ID", value=activity.track_id)
+					embedSpotify.add_field(name="Song Length", value=dateutil.parser.parse(str(activity.duration)).strftime('%M:%S'))
 					embeds.append(embedSpotify)
 				if isinstance(activity, CustomActivity):
 					embedCustom = discord.Embed(title="{}#{} Custom Status".format(target.name, target.discriminator), color=Color.green(), description=("```{} {}```".format(activity.emoji, activity.name)) if activity.emoji != None else activity.name)
@@ -128,7 +128,7 @@ class Info(commands.Cog, description="Commands that return information"):
 				else:
 					pass
 			paginate = Paginator(self.bot, ctx, embeds)
-			await paginate.run()
+			await paginate.run() if len(embeds) > 1 else await ctx.send(embed=embeds[0]) if len(embeds) > 0 else await ctx.send("they aint doin nun you silly goose")
 		except Exception as exc:
 			tragedy.logError(exc)
 
@@ -160,7 +160,7 @@ class Info(commands.Cog, description="Commands that return information"):
 				tragedy.logError(exc)
 				await ctx.send('that aint even a place bro bro :thinking:\nor yo stooopid ahhh typed it wrong')
 				pass
-				
+
 	@commands.command(description="returns recommended bitcoin fees", help="fees")
 	@commands.cooldown(1, 5, BucketType.member)
 	async def fees(self, ctx):
@@ -186,6 +186,22 @@ class Info(commands.Cog, description="Commands that return information"):
 					embed.add_field(name="Ethereum (ETH)", value="USD - **${}**\nEUR - **{}€**\nCAD - **${}**".format(jObjETH['USD'], jObjETH['EUR'], jObjETH['CAD']), inline=False)
 					embed.add_field(name="Monero (XMR)", value="USD - **${}**\nEUR - **{}€**\nCAD - **${}**".format(jObjXMR['USD'], jObjXMR['EUR'], jObjXMR['CAD']), inline=False)
 					await ctx.reply(embed=embed, mention_author=True)
+
+	@commands.command(name="color", aliases=["colour"], description="Renders specified color", help="color <hex/rgb>")
+	async def _color(self, ctx: commands.Context, *, color: str):
+		if color.count(',') == 3:
+			async with self.aiohttp.get("http://www.thecolorapi.com/id?rgb={}".format(color.strip('rgb#() '))) as api:
+				render = "https://serux.pro/rendercolour?rgb={}".format(color.strip('rgb#() '))
+				jObjAPI = await api.json()
+		if color.count(',') == 0 and len(color) == 6 or 7:
+			async with self.aiohttp.get("http://www.thecolorapi.com/id?hex={}".format(str(color).strip('# '))) as api:
+				render = "https://serux.pro/rendercolour?hex={}".format(str(color).strip('# '))
+				jObjAPI = await api.json()
+		embed = discord.Embed(title=jObjAPI["name"]["value"], color=Color.from_rgb(jObjAPI["rgb"]["r"], jObjAPI["rgb"]["g"], jObjAPI["rgb"]["b"]))
+		embed.set_thumbnail(url=render)
+		embed.add_field(name="Hex", value=jObjAPI["hex"]["value"])
+		embed.add_field(name="RBG", value=jObjAPI["rgb"]["value"])
+		await ctx.send(embed=embed)
 
 def setup(bot):
 	bot.add_cog(Info(bot))

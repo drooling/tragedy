@@ -29,7 +29,7 @@ cursor = databaseConfig.cursor()
 class Mod(commands.Cog, description="Commands to moderate your server !"):
 	def __init__(self, bot):
 		self.bot = bot
-
+		
 	@commands.command(ignore_extra=True, aliases=["changeprefix", "changepref"], description="chenges tragedy's prefix for this server", help="prefix <prefix>")
 	@commands.guild_only()
 	@commands.has_permissions(manage_guild=True)

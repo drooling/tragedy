@@ -2,6 +2,7 @@
 
 import os
 from discord.colour import Color
+from discord.embeds import Embed
 from discord.ext import commands
 import discord
 import asyncio
@@ -9,6 +10,7 @@ import aiohttp
 from discord.ext.commands.cooldowns import BucketType
 import random
 import io
+import hashlib
 
 
 class Fun(commands.Cog, description="Fun commands to make discord just a bit better !"):
@@ -71,6 +73,32 @@ class Fun(commands.Cog, description="Fun commands to make discord just a bit bet
 		wrap = ("||:boom:|| " * 9 + '\n') * 9
 		embed=discord.Embed(title="Bubble Wrap !", description=wrap, color=Color.green())
 		await ctx.send(embed=embed)
+
+	@commands.command(name="hash", description="Hashes provided text with provided algorithm", help="hash <algorithm> <message>")
+	@commands.cooldown(1, 5, BucketType.member)
+	async def _hash(self, ctx, algorithm: str, *, message):
+		algos = {
+			"md5": hashlib.md5(bytes(message.encode("utf-8"))).hexdigest(),
+			"sha1": hashlib.sha1(bytes(message.encode("utf-8"))).hexdigest(),
+			"sha224": hashlib.sha224(bytes(message.encode("utf-8"))).hexdigest(),
+			"sha3_224": hashlib.sha3_224(bytes(message.encode("utf-8"))).hexdigest(),
+			"sha256": hashlib.sha256(bytes(message.encode("utf-8"))).hexdigest(),
+			"sha3_256": hashlib.sha3_256(bytes(message.encode("utf-8"))).hexdigest(),
+			"sha384": hashlib.sha384(bytes(message.encode("utf-8"))).hexdigest(),
+			"sha3_384": hashlib.sha3_384(bytes(message.encode("utf-8"))).hexdigest(),
+			"sha512": hashlib.sha512(bytes(message.encode("utf-8"))).hexdigest(),
+			"sha3_512": hashlib.sha3_512(bytes(message.encode("utf-8"))).hexdigest(),
+			"blake2b": hashlib.blake2b(bytes(message.encode("utf-8"))).hexdigest(),
+			"blake2s": hashlib.blake2s(bytes(message.encode("utf-8"))).hexdigest(),
+			}
+		embed = discord.Embed(color=Color.green(), title="Hashed \"{}\"".format(message))
+		if algorithm.lower() not in list(algos.keys()):
+			for algo in list(algos.keys()):
+				hash = algos[algo]
+				embed.add_field(name=algo, value="```{}```".format(hash))
+		else:
+			embed.add_field(name=algorithm, value="```{}```".format(algos[algorithm.lower()]), inline=False)
+		await ctx.reply(embed=embed, mention_author=True)
 
 def setup(bot):
 	bot.add_cog(Fun(bot))

@@ -53,7 +53,7 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 #		try:
 #			channel = sorted([chan for chan in member.guild.channels if chan.permissions_for(member.guild.me).send_messages and isinstance(chan, discord.TextChannel)], key=lambda x: x.position)[0]
 #			async def play_source(self, voice_client): # play_source function is pasted from stackoverflow not gonna lie
-#				source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("./resources/marski/{}".format(random.choice(os.listdir("./resources/marski"))), executable="./resources/ffmpeg.exe"))
+#				source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("./assets/marski/{}".format(random.choice(os.listdir("./assets/marski"))), executable="./assets/ffmpeg.exe"))
 #				voice_client.play(source, after=lambda e: self.bot.loop.create_task(play_source(self, voice_client)))
 #				voice_client.source.volume = 100
 #			if before.channel is not None and after.channel is None:
@@ -64,7 +64,7 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 #						await asyncio.sleep(3)
 #						await voiceClient.disconnect()
 #						return
-#			#with open("./resources/pack.json", "r") as list:
+#			#with open("./assets/pack.json", "r") as list:
 #				#if member.id in json.load(list)["pack"] and after.channel is not None:
 #			if before.channel is None and after.channel is not None:
 #				instance = await after.channel.connect()
