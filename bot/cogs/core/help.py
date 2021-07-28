@@ -1,10 +1,11 @@
 # -*- coding: utf-8 -*-
 
-from discord.ext import commands
-from discord.colour import Color
-import discord
-import datetime
 import contextlib
+
+import discord
+from discord.colour import Color
+from discord.ext import commands
+
 
 class HelpEmbed(discord.Embed):
 	def __init__(self, **kwargs):
@@ -12,6 +13,7 @@ class HelpEmbed(discord.Embed):
 		text = "Use help [command] or help [category] for more information | <required> - [optional]"
 		self.set_footer(text=text)
 		self.color = Color.green()
+
 
 class Help(commands.HelpCommand):
 	def __init__(self):
@@ -22,7 +24,7 @@ class Help(commands.HelpCommand):
 				"aliases": ['commands']
 			}
 		)
-	
+
 	async def send(self, **kwargs):
 		await self.get_destination().send(**kwargs)
 
@@ -32,7 +34,7 @@ class Help(commands.HelpCommand):
 		usable = 0
 
 		for cog, commands in mapping.items():
-			if filtered_commands := await self.filter_commands(commands): 
+			if filtered_commands := await self.filter_commands(commands):
 				amount_commands = len(filtered_commands)
 				usable += amount_commands
 				if cog:
@@ -42,12 +44,13 @@ class Help(commands.HelpCommand):
 				else:
 					pass
 
-		embed.description = f"{usable} commands" 
+		embed.description = f"{usable} commands"
 		await self.send(embed=embed)
 
 	async def send_command_help(self, command):
 		signature = self.get_command_signature(command)
-		embed = HelpEmbed(title=signature, description="```{}```".format(command.description or "No Description Specified By Developer"))
+		embed = HelpEmbed(title=signature,
+						  description="```{}```".format(command.description or "No Description Specified By Developer"))
 
 		if cog := command.cog:
 			embed.add_field(name="Category", value=cog.qualified_name)
@@ -56,7 +59,7 @@ class Help(commands.HelpCommand):
 		with contextlib.suppress(commands.CommandError):
 			if await command.can_run(self.context):
 				can_run = "Yes"
-			
+
 		embed.add_field(name="Enabled?", value=can_run)
 
 		if command._buckets and (cooldown := command._buckets._cooldown):
@@ -70,7 +73,7 @@ class Help(commands.HelpCommand):
 		if filtered_commands := await self.filter_commands(commands):
 			for command in filtered_commands:
 				embed.add_field(name=command.name, value=command.description or "No Description Specified By Developer")
-		   
+
 		await self.send(embed=embed)
 
 	async def send_group_help(self, group):
@@ -80,6 +83,7 @@ class Help(commands.HelpCommand):
 	async def send_cog_help(self, cog):
 		title = cog.qualified_name or "No"
 		await self.send_help_embed(title, cog.description, cog.get_commands())
+
 
 def setup(bot):
 	bot.help_command = Help()

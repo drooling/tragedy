@@ -8,3 +8,5 @@
 **/assets/pack.json
 **/_environment
 **/.vscode
+**/venv/**
+.idea/

@@ -1,15 +1,14 @@
 # -*- coding: utf-8 -*-
-import datetime
 import logging
-import sys
-import traceback
+import os
+import pprint
 import random
 import string
-import pprint
+import sys
+import traceback
+
 import pymysql.cursors
 from dotenv import load_dotenv
-import os
-from math import floor
 
 load_dotenv(".env")
 
@@ -25,15 +24,18 @@ databaseConfig = pymysql.connect(
 	write_timeout=5,
 	connect_timeout=5,
 	autocommit=True
-	)
+)
+
 
 class Utilities():
 	def __init__(self, bot):
 		self.bot = bot
 
-def dotenvVar(var: str):
+
+def DotenvVar(var: str):
 	load_dotenv('.env')
 	return os.getenv(var)
+
 
 def EmojiBool(bool: bool):
 	switch = {
@@ -42,16 +44,18 @@ def EmojiBool(bool: bool):
 	}
 	return switch.get(bool, "N/A")
 
-def humansize(nbytes): #https://stackoverflow.com/questions/14996453/python-libraries-to-calculate-human-readable-filesize-from-bytes
+
+def Humansize(nbytes):  # https://stackoverflow.com/questions/14996453/python-libraries-to-calculate-human-readable-filesize-from-bytes
 	suffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
 	i = 0
-	while nbytes >= 1024 and i < len(suffixes)-1:
+	while nbytes >= 1024 and i < len(suffixes) - 1:
 		nbytes /= 1024.
 		i += 1
 	f = ('%.2f' % nbytes).rstrip('0').rstrip('.')
 	return '%s %s' % (f, suffixes[i])
 
-def humanStatus(status):
+
+def HumanStatus(status):
 	switch = {
 		"dnd": "Do Not Disturb.",
 		"online": "Online.",
@@ -59,6 +63,7 @@ def humanStatus(status):
 		"offline": "Offline.",
 	}
 	return switch.get(status, "Error.")
+
 
 def custom_prefix(bot, message):
 	try:
@@ -73,12 +78,8 @@ def custom_prefix(bot, message):
 		except Exception as exc:
 			logError(exc)
 	except pymysql.err.InterfaceError as exc:
-			logError(exc)
+		logError(exc)
 
-def randomString(length):
-	components = list(string.ascii_lowercase)
-	randString = ''.join(random.choice(components) in range(length))
-	return randString
 
 def logError(exception: Exception):
 	exc_type, exc_value, exc_tb = sys.exc_info()
@@ -88,21 +89,24 @@ def logError(exception: Exception):
 	debugFile.close()
 	logging.log(logging.ERROR, "Exception was thrown, to see more details open /debug/exceptions.log")
 
-def wrap(font, text, line_width): # https://github.com/DankMemer/imgen/blob/master/utils/textutils.py (useful asf so i stole it not even gonna cap w you)
-    words = text.split()
-    lines = []
-    line = []
-    for word in words:
-        newline = ' '.join(line + [word])
-        width, height = font.getsize(newline)
-        if width > line_width:
-            lines.append(' '.join(line))
-            line = [word]
-        else:
-            line.append(word)
-    if line:
-        lines.append(' '.join(line))
-    return ('\n'.join(lines)).strip()
+
+def wrap(font, text,
+         line_width):  # https://github.com/DankMemer/imgen/blob/master/utils/textutils.py (useful asf so i stole it not even gonna cap w you)
+	words = text.split()
+	lines = []
+	line = []
+	for word in words:
+		newline = ' '.join(line + [word])
+		width, height = font.getsize(newline)
+		if width > line_width:
+			lines.append(' '.join(line))
+			line = [word]
+		else:
+			line.append(word)
+	if line:
+		lines.append(' '.join(line))
+	return ('\n'.join(lines)).strip()
+
 
 while __name__ == "__main__":
 	try:
@@ -122,4 +126,4 @@ while __name__ == "__main__":
 			write_timeout=5,
 			connect_timeout=5,
 			autocommit=True
-			)
+		)
