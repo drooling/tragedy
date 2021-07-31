@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
+import aiohttp
 import asyncio
 import hashlib
 import random
-from typing import Dict, Any, Union
+import typing
+import re
 
-import aiohttp
 import discord
 from discord.colour import Color
 from discord.ext import commands
@@ -24,10 +25,12 @@ class Fun(commands.Cog, description="Fun commands to make discord just a bit bet
 			async with requests.get("http://api.urbandictionary.com/v0/define?term={}".format(phrase)) as urb:
 				urban = await urb.json()
 				try:
-					embed = discord.Embed(title=f"Term - \"{phrase}\"", color=discord.Color.green())
+					embed = discord.Embed(
+						title=f"Term - \"{phrase}\"", color=discord.Color.green())
 					embed.add_field(name="Definition",
 									value=urban['list'][0]['definition'].replace('[', '').replace(']', ''))
-					embed.add_field(name="Example", value=urban['list'][0]['example'].replace('[', '').replace(']', ''))
+					embed.add_field(name="Example", value=urban['list'][0]['example'].replace(
+						'[', '').replace(']', ''))
 					temp = await ctx.reply(embed=embed, mention_author=True)
 					await asyncio.sleep(15)
 					await temp.delete()
@@ -43,14 +46,16 @@ class Fun(commands.Cog, description="Fun commands to make discord just a bit bet
 			embed = discord.Embed(title="Synonyms", description="Synonyms for the word \"{}\"".format(word),
 								  color=Color.green())
 			for _index in range(len(parse["result"])):
-				embed.add_field(name="\u200b", value="**{}**".format(parse["result"][_index]["word"]), inline=False)
+				embed.add_field(
+					name="\u200b", value="**{}**".format(parse["result"][_index]["word"]), inline=False)
 			await ctx.send(embed=embed)
 
 	@commands.command(description="Shortens specified url with 3 different url shorteners", help="shorten <url>")
 	@commands.cooldown(1, 5, type=BucketType.member)
 	async def shorten(self, ctx: commands.Context, *, url: str):
 		async with ctx.typing():
-			embed = discord.Embed(title="URL Shortener ({})".format(url), color=Color.green())
+			embed = discord.Embed(
+				title="URL Shortener ({})".format(url), color=Color.green())
 			async with self.aiohttp.get("https://api.shrtco.de/v2/shorten?url={}".format(url)) as shrtco:
 				async with self.aiohttp.get("https://clck.ru/--?url={}".format(url)) as clck:
 					async with self.aiohttp.get("http://tinyurl.com/api-create.php?url={}".format(url)) as tiny:
@@ -74,15 +79,27 @@ class Fun(commands.Cog, description="Fun commands to make discord just a bit bet
 	@commands.command(aliases=["bubbles", "wrap", "pop"], description="It's just bubble wrap", help="bubblewrap")
 	@commands.cooldown(1, 5, BucketType.member)
 	async def bubblewrap(self, ctx):
-		wrap = ("||:boom:|| " * 9 + '\n') * 9
-		embed = discord.Embed(title="Bubble Wrap !", description=wrap, color=Color.green())
+		wrap = ("||:boom:|| " * 9 + '\r\n') * 9
+		embed = discord.Embed(title="Bubble Wrap !",
+							  description=wrap, color=Color.green())
 		await ctx.send(embed=embed)
+
+	@commands.command(name="rr?", description="Detects if provided url is a rick-roll", help="rr? <url>")
+	async def _rr(self, ctx: commands.Context, *, url: str):
+		phrases = ["rickroll","rick roll","rick astley","never gonna give you up"]
+		source = str(await (await self.aiohttp.get(url)).content.read()).lower()
+		rickRoll = bool((re.findall('|'.join(phrases), source, re.MULTILINE)))
+		await ctx.reply(embed = discord.Embed(
+			title="Rick Roll Detector",
+			color=Color.red() if rickRoll is True else Color.green(),
+			description="Rick Roll {} in webpage".format("was found" if rickRoll is True else "was not found")
+		), mention_author=True)
 
 	@commands.command(name="hash", description="Hashes provided text with provided algorithm",
 					  help="hash <algorithm> <message>")
 	@commands.cooldown(1, 5, BucketType.member)
 	async def _hash(self, ctx, algorithm: str, *, message):
-		algo: dict[Union[str, Any], Union[str, Any]] = {
+		algo: dict[typing.Union[str, typing.Any], typing.Union[str, typing.Any]] = {
 			"md5": hashlib.md5(bytes(message.encode("utf-8"))).hexdigest(),
 			"sha1": hashlib.sha1(bytes(message.encode("utf-8"))).hexdigest(),
 			"sha224": hashlib.sha224(bytes(message.encode("utf-8"))).hexdigest(),
@@ -94,15 +111,17 @@ class Fun(commands.Cog, description="Fun commands to make discord just a bit bet
 			"sha512": hashlib.sha512(bytes(message.encode("utf-8"))).hexdigest(),
 			"sha3_512": hashlib.sha3_512(bytes(message.encode("utf-8"))).hexdigest(),
 			"blake2b": hashlib.blake2b(bytes(message.encode("utf-8"))).hexdigest(),
-			"blake2s": hashlib.blake2s(bytes(message.encode("utf-8"))).hexdigest(),
+			"blake2s": hashlib.blake2s(bytes(message.encode("utf-8"))).hexdigest()
 		}
-		embed = discord.Embed(color=Color.green(), title="Hashed \"{}\"".format(message))
+		embed = discord.Embed(color=Color.green(),
+							  title="Hashed \"{}\"".format(message))
 		if algorithm.lower() not in list(algo.keys()):
 			for algo in list(algo.keys()):
 				hash = algo[algo]
 				embed.add_field(name=algo, value="```{}```".format(hash))
 		else:
-			embed.add_field(name=algorithm, value="```{}```".format(algo[algorithm.lower()]), inline=False)
+			embed.add_field(name=algorithm, value="```{}```".format(
+				algo[algorithm.lower()]), inline=False)
 		await ctx.reply(embed=embed, mention_author=True)
 
 

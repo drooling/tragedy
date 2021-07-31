@@ -40,7 +40,7 @@ class Help(commands.HelpCommand):
 				if cog:
 					name = cog.qualified_name
 					description = cog.description or "No description"
-					embed.add_field(name=f"{name} [{amount_commands}]", value=description, inline=False)
+					embed.add_field(name=f"{name} [{amount_commands}]", value=">>> " + description, inline=False)
 				else:
 					pass
 

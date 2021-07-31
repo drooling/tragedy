@@ -17,7 +17,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 
 	@commands.command(description="Inverts user's avatar", help="invert [member]")
 	@commands.cooldown(1, 5, BucketType.member)
-	async def invert(self, ctx, member: discord.Member = None):
+	async def invert(self, ctx, member: commands.MemberConverter = None):
 		member = ctx.author if not member else member
 		avatar = await member.avatar_url_as(format='png', size=1024).read()
 		with io.BytesIO(avatar) as buffer:
@@ -30,7 +30,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 
 	@commands.command(description="Blurs user's avatar", help="blur [member]")
 	@commands.cooldown(1, 5, BucketType.member)
-	async def blur(self, ctx, member: discord.Member = None):
+	async def blur(self, ctx, member: commands.MemberConverter = None):
 		member = ctx.author if not member else member
 		avatar = await member.avatar_url_as(format='png', size=1024).read()
 		with io.BytesIO(avatar) as buffer:
@@ -43,7 +43,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 
 	@commands.command(description="Posterize's user's avatar", help="posterize [member]")
 	@commands.cooldown(1, 5, BucketType.member)
-	async def posterize(self, ctx, member: discord.Member = None):
+	async def posterize(self, ctx, member: commands.MemberConverter = None):
 		member = ctx.author if not member else member
 		avatar = await member.avatar_url_as(format='png', size=1024).read()
 		with io.BytesIO(avatar) as buffer:
@@ -57,7 +57,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 	@commands.command(description="Convert user's avatar to black and white", help="grayscale [member]",
 	                  aliases=["baw", "b&w"])
 	@commands.cooldown(1, 5, BucketType.member)
-	async def grayscale(self, ctx, member: discord.Member = None):
+	async def grayscale(self, ctx, member: commands.MemberConverter = None):
 		member = ctx.author if not member else member
 		avatar = await member.avatar_url_as(format='png', size=1024).read()
 		with io.BytesIO(avatar) as buffer:
@@ -70,7 +70,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 
 	@commands.command(aliases=["deepfry", "deepfried"], description="Deep fries user's avatar", help="fry [user]")
 	@commands.cooldown(1, 5, type=BucketType.member)
-	async def fry(self, ctx, user: discord.Member = None):
+	async def fry(self, ctx, user: commands.MemberConverter = None):
 		if user is None:
 			async with self.aiohttp.get("https://nekobot.xyz/api/imagegen?type=deepfry&image={}".format(
 					str(ctx.author.avatar_url_as(format="png")))) as r:
@@ -103,7 +103,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 				await ctx.reply(file=sendFile)
 
 	@commands.command(name="triggered", description="Makes person triggered", help="triggered [member]")
-	async def _triggered(self, ctx: commands.Context, member: discord.Member = None):
+	async def _triggered(self, ctx: commands.Context, member: commands.MemberConverter = None):
 		async with ctx.typing():
 			member = ctx.author if not member else member
 			avatar = await member.avatar_url_as(format='png', size=1024).read()
@@ -119,7 +119,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 				await ctx.send(file=discord.File(final, filename="linktr.ee_incriminating.png"))
 
 	@commands.command(name="gay", description="Makes person gay", help="gay [member]")
-	async def _gay(self, ctx: commands.Context, member: discord.Member = None):
+	async def _gay(self, ctx: commands.Context, member: commands.MemberConverter = None):
 		async with ctx.typing():
 			member = ctx.author if not member else member
 			avatar = await member.avatar_url_as(format='png', size=1024).read()
@@ -134,7 +134,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 				await ctx.send(file=discord.File(final, filename="linktr.ee_incriminating.png"))
 
 	@commands.command(name="jail", description="Puts person behind bars", help="jail [member]")
-	async def _jail(self, ctx: commands.Context, member: discord.Member = None):
+	async def _jail(self, ctx: commands.Context, member: commands.MemberConverter = None):
 		async with ctx.typing():
 			member = ctx.author if not member else member
 			avatar = await member.avatar_url_as(format='png', size=1024).read()
@@ -148,7 +148,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 				await ctx.send(file=discord.File(final, filename="linktr.ee_incriminating.png"))
 
 	@commands.command(name="communist", description="Makes person a communist", help="communist [member]")
-	async def _communist(self, ctx: commands.Context, member: discord.Member = None):
+	async def _communist(self, ctx: commands.Context, member: commands.MemberConverter = None):
 		async with ctx.typing():
 			member = ctx.author if not member else member
 			avatar = await member.avatar_url_as(format='png', size=1024).read()
@@ -163,7 +163,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 				await ctx.send(file=discord.File(final, filename="linktr.ee_incriminating.png"))
 
 	@commands.command(name="pan", description="Pan.", help="pan [member]")
-	async def _pan(self, ctx: commands.Context, member: discord.Member = None):
+	async def _pan(self, ctx: commands.Context, member: commands.MemberConverter = None):
 		if member != None and await self.bot.is_owner(member) == True:
 			await ctx.send("no.")
 			return
@@ -186,7 +186,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 
 	@commands.command(name="presentation", description="Makes lisa simpson presentation meme with your text",
 	                  help="presentation <message> [member]")
-	async def _presentation(self, ctx: commands.Context, *, message: str, member: discord.Member = None):
+	async def _presentation(self, ctx: commands.Context, *, message: str, member: commands.MemberConverter = None):
 		async with ctx.typing():
 			member = ctx.author if not member else member
 			avatar = await member.avatar_url_as(format='png', size=1024).read()
@@ -204,7 +204,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 				await ctx.send(file=discord.File(final, filename="linktr.ee_incriminating.png"))
 
 	@commands.command(name="warned", description="Warned by the judge", help="warned [member]")
-	async def _warned(self, ctx: commands.Context, member: discord.Member = None):
+	async def _warned(self, ctx: commands.Context, member: commands.MemberConverter = None):
 		async with ctx.typing():
 			member = ctx.author if not member else member
 			avatar = await member.avatar_url_as(format='png', size=1024).read()
@@ -219,7 +219,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 
 	@commands.command(name="menace", description="Shows how much of a menace to society the specified person is",
 	                  help="menace <member>")
-	async def _menace(self, ctx: commands.Context, member: discord.Member):
+	async def _menace(self, ctx: commands.Context, member: commands.MemberConverter):
 		async with ctx.typing():
 			if await self.bot.is_owner(member):
 				await ctx.send("no.")
@@ -253,7 +253,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 		await ctx.send(file=discord.File(final, filename="linktr.ee_incriminating.png"))
 
 	@commands.command(name="match", description="Tinder match", help="match <lover1> [lover2]")
-	async def _match(self, ctx: commands.Context, lover1: discord.Member, lover2: discord.Member = None):
+	async def _match(self, ctx: commands.Context, lover1: commands.MemberConverter, lover2: commands.MemberConverter = None):
 		async with ctx.typing():
 			lover2 = ctx.author if not lover2 else lover2
 			lover1 = await lover1.avatar_url_as(format='png', size=1024).read()
@@ -271,29 +271,26 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 
 	@commands.is_nsfw()
 	@commands.command(name="fuck", description="Rail tf outta specified user", help="fuck <user>")
-	async def _fuck(self, ctx: commands.Context, user: discord.Member):
-		try:
-			async with ctx.typing():
-				slut = user
-				slutAvBytes = await slut.avatar_url_as(format="png", size=1024).read()
-				with io.BytesIO(slutAvBytes) as slutAvIO:
-					rail = Image.open(self.assets + "pillow/rail.gif")
-					slutAv = Image.open(slutAvIO).resize((80, 85))
-					gif = list()
-					for i in range(0, rail.n_frames):
-						rail.seek(i)
-						frame = rail.copy().convert('RGBA')
-						frame.paste(slutAv, (155, 110), slutAv)
-						gif.append(frame)
-					final = io.BytesIO()
-					gif[0].save(final, format='gif', save_all=True, append_images=gif[1:], loop=0, optimize=True)
-					final.seek(0)
-					await ctx.send(file=discord.File(final, filename="linktr.ee_incriminating.gif"))
-		except Exception as exc:
-			print(exc)
-
+	async def _fuck(self, ctx: commands.Context, user: commands.MemberConverter):
+		async with ctx.typing():
+			slut = user
+			slutAvBytes = await slut.avatar_url_as(format="png", size=1024).read()
+			with io.BytesIO(slutAvBytes) as slutAvIO:
+				rail = Image.open(self.assets + "pillow/rail.gif")
+				slutAv = Image.open(slutAvIO).resize((80, 85))
+				gif = list()
+				for i in range(0, rail.n_frames):
+					rail.seek(i)
+					frame = rail.copy().convert('RGBA')
+					frame.paste(slutAv, (155, 110), slutAv)
+					gif.append(frame)
+				final = io.BytesIO()
+				gif[0].save(final, format='gif', save_all=True, append_images=gif[1:], loop=0, optimize=True)
+				final.seek(0)
+				await ctx.send(file=discord.File(final, filename="linktr.ee_incriminating.gif"))
+				
 	#@commands.command(name="profile", description="Generates user profile", help="profile [user]")
-	#async def _profile(self, ctx: commands.Context, user: discord.Member):
+	#async def _profile(self, ctx: commands.Context, user: commands.MemberConverter):
 	#	try:
 	#		async with ctx.typing():
 	#			avatarBytes = await user.avatar_url_as(format="png", size=1024).read()

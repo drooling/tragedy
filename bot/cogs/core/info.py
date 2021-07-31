@@ -2,6 +2,7 @@
 
 import asyncio
 from datetime import datetime
+import json
 
 import aiohttp
 import dateutil.parser
@@ -23,7 +24,7 @@ class Info(commands.Cog, description="Commands that return information"):
 
 	@commands.command(description="you know what this does dont play stupid", help="whois [member]")
 	@commands.cooldown(1, 5, type=BucketType.member)
-	async def whois(self, ctx, member: discord.Member = None):
+	async def whois(self, ctx, member: commands.MemberConverter = None):
 		member = member if member != None else ctx.author
 		joinPosition = sum(m.joined_at < member.joined_at for m in ctx.guild.members if m.joined_at is not None)
 		roleNameList = list(role.mention for role in member.roles if role != ctx.guild.default_role)
@@ -33,15 +34,15 @@ class Info(commands.Cog, description="Commands that return information"):
 		embed.set_author(name="{} ({})".format(member, member.id), icon_url=member.avatar_url)
 		embed.add_field(name="Basic Info",
 						value="Joined Server At - **{} (Around {})**\nRegistered on Discord At - **{} (Around {})**".format(
-							member.joined_at.strftime("%A, %#d %B %Y, %I:%M %p"),
-							humanize.naturaldelta(datetime.now() - member.joined_at),
-							member.created_at.strftime('%A, %#d %B %Y, %I:%M %p'),
-							humanize.naturaldelta(datetime.now() - member.created_at)))
-		embed.add_field(name="Status Info",
+							humanize.naturaldate(member.joined_at),
+							humanize.naturaltime(datetime.now() - member.joined_at),
+							humanize.naturaldate(member.created_at),
+							humanize.naturaltime(datetime.now() - member.created_at)))
+		embed.add_field(name="Status Info (Buggy)",
 						value="Desktop Status - **{}**\nMobile Status - **{}**\nWeb Application Status - **{}**".format(
-							tragedy.humanStatus(str(member.desktop_status)),
-							tragedy.humanStatus(str(member.mobile_status)),
-							tragedy.humanStatus(str(member.web_status))), inline=False)
+							tragedy.HumanStatus(str(member.desktop_status)),
+							tragedy.HumanStatus(str(member.mobile_status)),
+							tragedy.HumanStatus(str(member.web_status))), inline=False)
 		embed.add_field(name="Role Info", value="Top Role - {}\nRole(s) - {}".format(
 			member.top_role.mention if member.top_role != ctx.guild.default_role else "None",
 			', '.join(roleNameList).removesuffix(', ') if roleNameList != [] else "None"), inline=False)
@@ -52,10 +53,7 @@ class Info(commands.Cog, description="Commands that return information"):
 							tragedy.EmojiBool(member.public_flags.verified_bot_developer)))
 		# embed.add_field(name="Other Info", value="HypeSquad House - {}\nUser has Nitro - {}\nConnected Accounts - {}".format(str(userProfile.hypesquad_houses).title(), tragedy.EmojiBool(await userProfile.nitro), ', '.join(externalAccounts).removeprefix(', ') if externalAccounts != [] else "None")) User profile has been depracated since v1.7
 		embed.set_footer(icon_url=ctx.author.avatar_url, text='Requested By: {}'.format(ctx.author.name))
-		temp = await ctx.reply(embed=embed, mention_author=True)
-		await asyncio.sleep(15)
-		await temp.delete()
-		await ctx.message.delete()
+		await ctx.reply(embed=embed, mention_author=True)
 
 	@commands.command(aliases=["guild", "si", "serverinfo", "guildinfo"],
 					  description="returns info about current guild", help="serverinfo")
@@ -81,7 +79,7 @@ class Info(commands.Cog, description="Commands that return information"):
 																								   ctx.guild.members),
 																							   str(ctx.guild.member_count)))
 		embed.add_field(name="Channels",
-						value=":speech_balloon: Text Channels: **{}**\n:loud_sound: Voice Channels: **{}**".format(
+						value="\U0001f4ac Text Channels: **{}**\n\U0001f50a Voice Channels: **{}**".format(
 							len(ctx.guild.text_channels), len(ctx.guild.voice_channels)))
 		embed.add_field(name="Important Info",
 						value="Owner: {}\nVerification Level: **{}**\nGuild ID: **{}**".format(ctx.guild.owner.mention,
@@ -96,28 +94,24 @@ class Info(commands.Cog, description="Commands that return information"):
 						value="{} - Banner\n{}\n{} - Splash Invite\n{} - Animated Icon\n{} - Server Discoverable".format(
 							tragedy.EmojiBool(banner), vanityFeature, tragedy.EmojiBool(splash),
 							tragedy.EmojiBool(animicon), tragedy.EmojiBool(discoverable)))
-		embed.add_field(name="Nitro Info",
+		embed.add_field(name="Boost Info",
 						value="Number of Boosts - **{}**\nBooster Role - **{}**\nBoost Level/Tier - **{}**".format(
 							str(ctx.guild.premium_subscription_count),
 							ctx.guild.premium_subscriber_role.mention if ctx.guild.premium_subscriber_role != None else ctx.guild.premium_subscriber_role,
 							ctx.guild.premium_tier))
-		temp = await ctx.reply(embed=embed, mention_author=True)
-		await asyncio.sleep(15)
-		await temp.delete()
-		await ctx.message.delete()
+		await ctx.reply(embed=embed, mention_author=True)
 
 	@commands.command(name="emoji", aliases=["ei", "emojinfo"], description="returns info about specified emoji",
 					  help="emoji <emoji>")
 	@commands.cooldown(1, 5, type=BucketType.member)
-	async def _emoji(self, ctx, emoji: discord.Emoji):
+	async def _emoji(self, ctx, emoji: commands.EmojiConverter):
 		embed = discord.Embed(title='**{}**'.format(emoji.name), colour=Color.green(), timestamp=datetime.utcnow())
 		embed.set_thumbnail(url=str(emoji.url))
 		embed.add_field(name="Basic Info",
 						value="Emoji Name - **{}**\nEmoji ID - **{}**\nCreated At - **{} ({})**".format(emoji.name,
 																										emoji.id,
-																										emoji.created_at.strftime(
-																											"%A, %#d %B %Y, %I:%M %p"),
-																										humanize.naturaldelta(
+																										humanize.naturaldate(emoji.created_at),
+																										humanize.naturaltime(
 																											datetime.now() - emoji.created_at)))
 		embed.add_field(name="Guild Info",
 						value="Guild Name - **{}**\nGuild ID - **{}**".format(emoji.guild.name, emoji.guild_id))
@@ -125,14 +119,29 @@ class Info(commands.Cog, description="Commands that return information"):
 						value="Animated - {}\nAvailable - {}\nManaged by Twitch - {}\nRequires Colons - {}".format(
 							tragedy.EmojiBool(emoji.animated), tragedy.EmojiBool(emoji.available),
 							tragedy.EmojiBool(emoji.managed), tragedy.EmojiBool(emoji.require_colons)), inline=False)
-		temp = await ctx.reply(embed=embed, mention_author=True)
-		await asyncio.sleep(15)
-		await temp.delete()
-		await ctx.message.delete()
+		await ctx.reply(embed=embed, mention_author=True)
+
+	@commands.command(name="role", aliases=['ri', 'roleinfo'], description="Returns info about specified role", help="role <role>")
+	@commands.cooldown(1, 5, BucketType.member)
+	async def _role(self, ctx: commands.Context, role: commands.RoleConverter):
+		async with ctx.typing():
+			embed = discord.Embed(title=role.name, color=role.color)
+			embed.add_field(name="Basic Info",
+							value="Role Name - **{}**\nRole ID - **{}**\nCreated At - **{} ({})**".format(role.name,
+																										  role.id,
+																										  humanize.naturaldate(role.created_at),
+																										  humanize.naturaltime(
+																										  	datetime.now() - role.created_at)))
+
+			embed.add_field(name="Features",
+						value="Mentionable - {}\nBot Role - {}\nManaged by Integration - {}\nBooster Role - {}\nDefault Role - {}".format(
+							tragedy.EmojiBool(role.mentionable), tragedy.EmojiBool(role.is_bot_managed()),
+							tragedy.EmojiBool(role.managed), tragedy.EmojiBool(role.is_premium_subscriber()), tragedy.EmojiBool(role.is_bot_managed())), inline=False)
+			await ctx.reply(embed=embed, mention_author=True)
 
 	@commands.command(aliases=['pfp', 'avatar'], description="you know what this does too", help="av [member]")
 	@commands.cooldown(1, 5, type=BucketType.member)
-	async def av(self, ctx, member: discord.Member = None):
+	async def av(self, ctx, member: commands.MemberConverter = None):
 		member = member if member != None else ctx.author
 		_128 = member.avatar_url_as(format='png', size=128)
 		_256 = member.avatar_url_as(format='png', size=256)
@@ -144,14 +153,11 @@ class Info(commands.Cog, description="Commands that return information"):
 								  _128, _256, _1024, _2048))
 		embed.set_image(url=_512)
 		embed.set_footer(text="{}'s Avatar (512 x 512)".format(member))
-		temp = await ctx.reply(embed=embed, mention_author=True)
-		await asyncio.sleep(15)
-		await temp.delete()
-		await ctx.message.delete()
+		await ctx.reply(embed=embed, mention_author=True)
 
 	@commands.command(description="returns specified member's status(es)", help="status [member]")
 	@commands.cooldown(1, 5, type=BucketType.member)
-	async def status(self, ctx, member: discord.Member = None):
+	async def status(self, ctx, member: commands.MemberConverter = None):
 		target = member if member != None else ctx.author
 		embeds = list()
 		try:
@@ -170,12 +176,17 @@ class Info(commands.Cog, description="Commands that return information"):
 										   value=dateutil.parser.parse(str(activity.duration)).strftime('%M:%S'))
 					embeds.append(embedSpotify)
 				if isinstance(activity, CustomActivity):
+					if activity.name is not None and activity.emoji is not None:
+						description = ("```{} {}```".format(activity.emoji, activity.name))
+					elif activity.emoji is not None and activity.name is None:
+						description = ("```{}```".format(activity.emoji))
+					elif activity.name is not None and activity.emoji is None:
+						description = ("```{}```".format(activity.name))
 					embedCustom = discord.Embed(title="{}#{} Custom Status".format(target.name, target.discriminator),
-												color=Color.green(), description=("```{} {}```".format(activity.emoji,
-																									   activity.name)) if activity.emoji is not None else activity.name)
+												color=Color.green(), description = description)
 					embeds.append(embedCustom)
 				if isinstance(activity, Game):
-					embedGame = discord.Embed(title=target, color=Color.green(), description=activity.name)
+					embedGame = discord.Embed(title=target, color=Color.green())
 					embedGame.add_field(name="Playing", value=activity.name)
 					embeds.append(embedGame)
 				if isinstance(activity, Streaming):
@@ -190,8 +201,7 @@ class Info(commands.Cog, description="Commands that return information"):
 				else:
 					pass
 			paginate = Paginator(self.bot, ctx, embeds)
-			await paginate.run() if len(embeds) > 1 else await ctx.send(embed=embeds[0]) if len(
-				embeds) > 0 else await ctx.send("they aint doin nun you silly goose")
+			await paginate.run() if len(embeds) > 1 else await ctx.send(embed=embeds[0]) if len(embeds) > 0 else await ctx.send("they aint doin nun you silly goose")
 		except Exception as exc:
 			tragedy.logError(exc)
 
@@ -276,6 +286,64 @@ class Info(commands.Cog, description="Commands that return information"):
 																							   jObjXMR['CAD']),
 									inline=False)
 					await ctx.reply(embed=embed, mention_author=True)
+
+	@commands.command(name="bal", description="Gets specified BTC wallet's balance", help="bal <wallet>")
+	async def _bal(self, ctx: commands.Context, *, wallet: str):
+		async with self.aiohttp.get("https://chain.so/api/v2/get_address_balance/BTC/{}/500".format(wallet)) as response:
+			json = await response.json()
+			if json["status"] == "fail":
+				await ctx.reply(embed=discord.Embed(
+					title="Error",
+					description="Invalid BTC wallet address",
+					color=Color.red()
+				), mention_author=True)
+			else:
+				await ctx.reply(embed=discord.Embed(
+					title=wallet,
+					description="```{}```".format(json["data"]["confirmed_balance"]),
+					color=Color.green()
+				), mention_author=True)
+
+	@commands.command(name = "tx", description="Gets information about specified BTC transaction ID", help="tx <transaction>")
+	async def _tx(self, ctx: commands.Context, *, transaction: str):
+		async with self.aiohttp.get("https://chain.so/api/v2/get_tx/BTC/{}".format(transaction)) as response:
+			json = await response.json()
+			if json["status"] == "fail":
+				await ctx.reply(embed=discord.Embed(
+					title="Error",
+					description="Invalid BTC transaction",
+					color=Color.red()
+				), mention_author=True)
+			else:
+				embed = discord.Embed(
+					title=transaction,
+					color=Color.green()
+				)
+				inputs = list()
+				outputs = list()
+				for _index in json["data"]["inputs"]:
+					inputs.append(str(_index["address"] + ' - ' + _index["value"]))
+				for _index in json["data"]["outputs"]:
+					outputs.append(str(_index["address"] + ' - ' + _index["value"]))
+				embed.add_field(name="Confirmations", value=json["data"]["confirmations"])
+				embed.add_field(name="Network Fee", value=json["data"]["network_fee"])
+				embed.add_field(name="Date", value=humanize.naturaldate(datetime.fromtimestamp(json["data"]["time"])))
+				embed.add_field(name="Output Wallets (Address - Value)", value='\n'.join(outputs).strip(), inline=False)
+				embed.add_field(name="Input Wallets (Address - Value)", value='\n'.join(inputs).strip(), inline=False)
+				await ctx.reply(embed=embed, mention_author=True)
+
+	@commands.command(name="covid", description="Returns worldwide covid statistics", help="covid")
+	async def _covid(self, ctx: commands.Context):
+		async with ctx.typing():
+			async with self.aiohttp.get("https://disease.sh/v3/covid-19/all") as jsonResponse:
+				embed = discord.Embed(title="Covid-19 Statistics", color=Color.green())
+				embed.set_thumbnail(url="https://www.lynchowens.com/images/blog/Coronavirus-illustration.png")
+				json = await jsonResponse.json()
+				embed.add_field(name="Cases", value="Total Cases - **{}**\nCases Today - **{}**\nCases Per 1 Million People - **{}**".format(humanize.intword(json["cases"]), humanize.intword(json["todayCases"]), humanize.intword(json["casesPerOneMillion"])))
+				embed.add_field(name="Deaths", value="Total Deaths - **{}**\nDeaths Today - **{}**\nDeaths Per 1 Million People - **{}**".format(humanize.intword(json["deaths"]), humanize.intword(json["todayDeaths"]), humanize.intword(json["deathsPerOneMillion"])), inline=False)
+				embed.add_field(name="Recovered", value="Total Recovered - **{}**\nRecovered Today - **{}**\nRecovered Per 1 Million People - **{}**".format(humanize.intword(json["recovered"]), humanize.intword(json["todayRecovered"]), humanize.intword(json["recoveredPerOneMillion"])))
+				embed.add_field(name="Tests", value="Total Tests - **{}**\nTests Per 1 Million People - **{}**".format(humanize.intword(json["tests"]), humanize.intword(json["testsPerOneMillion"])), inline=False)
+				await ctx.reply(embed=embed, mention_author=True)
 
 
 def setup(bot):

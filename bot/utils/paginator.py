@@ -86,7 +86,13 @@ class Paginator:
 		return done.pop().result()
 
 	async def on_reaction_add(self):
-		return await self.bot.wait_for("reaction_add", check=self.check, timeout=self.timeout)
+		try:
+			return await self.bot.wait_for("reaction_add", check=self.check, timeout=self.timeout)
+		except asyncio.exceptions.TimeoutError:
+			await self.session_end()
 
 	async def on_reaction_remove(self):
-		return await self.bot.wait_for("reaction_remove", check=self.check, timeout=self.timeout)
+		try:
+			return await self.bot.wait_for("reaction_remove", check=self.check, timeout=self.timeout)
+		except asyncio.exceptions.TimeoutError:
+			await self.session_end()

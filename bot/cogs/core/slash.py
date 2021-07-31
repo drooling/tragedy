@@ -3,6 +3,7 @@
 from datetime import datetime
 
 import discord
+import humanize
 import timeago
 from discord.colour import Color
 from discord.ext import commands
@@ -32,14 +33,14 @@ class Slash(commands.Cog, command_attrs=dict(hidden=True)):
 		embed.add_field(name="Basic Info",
 						value="Joined Server At - **{} (Around {})**\nRegistered on Discord At - **{} (Around {})**".format(
 							member.joined_at.strftime("%A, %#d %B %Y, %I:%M %p"),
-							timeago.format(datetime.now() - member.joined_at),
+							humanize.naturaldelta(datetime.now() - member.joined_at),
 							member.created_at.strftime('%A, %#d %B %Y, %I:%M %p'),
-							timeago.format(datetime.now() - member.created_at)))
-		embed.add_field(name="Status Info",
+							humanize.naturaldelta(datetime.now() - member.created_at)))
+		embed.add_field(name="Status Info (Buggy)",
 						value="Desktop Status - **{}**\nMobile Status - **{}**\nWeb Application Status - **{}**".format(
-							tragedy.humanStatus(str(member.desktop_status)),
-							tragedy.humanStatus(str(member.mobile_status)),
-							tragedy.humanStatus(str(member.web_status))), inline=False)
+							tragedy.HumanStatus(str(member.desktop_status)),
+							tragedy.HumanStatus(str(member.mobile_status)),
+							tragedy.HumanStatus(str(member.web_status))), inline=False)
 		embed.add_field(name="Role Info", value="Top Role - {}\nRole(s) - {}".format(
 			member.top_role.mention if member.top_role != ctx.guild.default_role else "None",
 			', '.join(roleNameList).removesuffix(', ') if roleNameList != [] else "None"), inline=False)
@@ -52,26 +53,6 @@ class Slash(commands.Cog, command_attrs=dict(hidden=True)):
 		embed.set_footer(icon_url=ctx.author.avatar_url, text='Requested By: {}'.format(ctx.author.name))
 		await ctx.send(embed=embed)
 
-	@slash_commands.command(
-		name="avatar",
-		description="Return specified user's avatar (pfp)",
-		options=[
-			Option("member", "Specify any user", Type.USER, required=True),
-		]
-	)
-	@commands.cooldown(1, 5, type=BucketType.member)
-	async def av(self, ctx, member: discord.Member):
-		_128 = member.avatar_url_as(format='png', size=128)
-		_256 = member.avatar_url_as(format='png', size=256)
-		_512 = member.avatar_url_as(format='png', size=512)
-		_1024 = member.avatar_url_as(format='png', size=1024)
-		_2048 = member.avatar_url_as(format='png', size=2048)
-		embed = discord.Embed(color=Color.green(),
-							  description="**[ [128]({}) ] - [ [256]({}) ] - [ 512 ] - [ [1024]({}) ] - [ [2048]({}) ]**".format(
-								  _128, _256, _1024, _2048))
-		embed.set_image(url=_512)
-		embed.set_footer(text="{}'s Avatar (512 x 512)".format(member))
-		await ctx.send(embed=embed)
 
 	@slash_commands.command(
 		name="avatar",
@@ -119,7 +100,7 @@ class Slash(commands.Cog, command_attrs=dict(hidden=True)):
 																								   ctx.guild.members),
 																							   str(ctx.guild.member_count)))
 		embed.add_field(name="Channels",
-						value=":speech_balloon: Text Channels: **{}**\n:loud_sound: Voice Channels: **{}**".format(
+						value="\U0001f4ac Text Channels: **{}**\n\U0001f50a Voice Channels: **{}**".format(
 							len(ctx.guild.text_channels), len(ctx.guild.voice_channels)))
 		embed.add_field(name="Important Info",
 						value="Owner: {}\nVerification Level: **{}**\nGuild ID: **{}**".format(ctx.guild.owner.mention,
@@ -129,12 +110,12 @@ class Slash(commands.Cog, command_attrs=dict(hidden=True)):
 		embed.add_field(name="Other Info",
 						value="AFK Channel: **{}**\n AFK Timeout: **{} minute(s)**\nCustom Emojis: **{}**\nRole Count: **{}**\nFilesize Limit - **{}**".format(
 							ctx.guild.afk_channel, str(ctx.guild.afk_timeout / 60), len(ctx.guild.emojis),
-							len(ctx.guild.roles), tragedy.humansize(ctx.guild.filesize_limit)), inline=False)
+							len(ctx.guild.roles), humanize.naturalsize(ctx.guild.filesize_limit)), inline=False)
 		embed.add_field(name="Server Features",
 						value="{} - Banner\n{}\n{} - Splash Invite\n{} - Animated Icon\n{} - Server Discoverable".format(
 							tragedy.EmojiBool(banner), vanityFeature, tragedy.EmojiBool(splash),
 							tragedy.EmojiBool(animicon), tragedy.EmojiBool(discoverable)))
-		embed.add_field(name="Nitro Info",
+		embed.add_field(name="Boost Info",
 						value="Number of Boosts - **{}**\nBooster Role - **{}**\nBoost Level/Tier - **{}**".format(
 							str(ctx.guild.premium_subscription_count),
 							ctx.guild.premium_subscriber_role.mention if ctx.guild.premium_subscriber_role != None else ctx.guild.premium_subscriber_role,

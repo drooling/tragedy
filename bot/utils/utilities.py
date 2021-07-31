@@ -45,16 +45,6 @@ def EmojiBool(bool: bool):
 	return switch.get(bool, "N/A")
 
 
-def Humansize(nbytes):  # https://stackoverflow.com/questions/14996453/python-libraries-to-calculate-human-readable-filesize-from-bytes
-	suffixes = ['B', 'KB', 'MB', 'GB', 'TB', 'PB']
-	i = 0
-	while nbytes >= 1024 and i < len(suffixes) - 1:
-		nbytes /= 1024.
-		i += 1
-	f = ('%.2f' % nbytes).rstrip('0').rstrip('.')
-	return '%s %s' % (f, suffixes[i])
-
-
 def HumanStatus(status):
 	switch = {
 		"dnd": "Do Not Disturb.",
@@ -82,12 +72,8 @@ def custom_prefix(bot, message):
 
 
 def logError(exception: Exception):
-	exc_type, exc_value, exc_tb = sys.exc_info()
-	exception = traceback.format_exception(exc_type, exc_value, exc_tb)
-	debugFile = open('./bot/debug/exceptions.log', 'w')
-	pprint.pprint(exception, stream=debugFile)
-	debugFile.close()
-	logging.log(logging.ERROR, "Exception was thrown, to see more details open /debug/exceptions.log")
+	logging.log(logging.ERROR, exception)
+	traceback.print_exception(type(exception), exception, exception.__traceback__, file=sys.stderr)
 
 
 def wrap(font, text,

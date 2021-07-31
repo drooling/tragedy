@@ -1,4 +1,5 @@
 import discord
+from discord import errors
 from discord.ext import commands
 from discord.ext.commands import MissingPermissions, CheckFailure, CommandNotFound, NotOwner
 
@@ -10,7 +11,7 @@ class Errors(commands.Cog, name="on command error"):
 		self.bot = bot
 
 	@commands.Cog.listener()
-	async def on_command_error(self, ctx: commands.Context, error: commands.CommandError):
+	async def on_command_error(self, ctx: commands.Context, error):
 		if isinstance(error, NotOwner):
 			return
 		else:
@@ -58,6 +59,17 @@ class Errors(commands.Cog, name="on command error"):
 									  description="That quote isn't supposed to be there you silly goose",
 									  color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
+			elif isinstance(error, commands.CommandInvokeError):
+				if str(error).count("Forbidden: 403 Forbidden") > 0:
+					embed = discord.Embed(title="Error",
+									  description="I am not high enough in the role heirachy to do that you silly goose.",
+									  color=discord.Color.red())
+					await ctx.reply(embed=embed, mention_author=True)
+				else:
+					embed = discord.Embed(title="Error", description="Something went wrong and we're not quite sure what",
+									  color=discord.Color.red())
+					await ctx.reply(embed=embed, mention_author=True)
+					tragedy.logError(error)
 			else:
 				embed = discord.Embed(title="Error", description="Something went wrong and we're not quite sure what",
 									  color=discord.Color.red())

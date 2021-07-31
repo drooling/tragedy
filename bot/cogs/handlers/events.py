@@ -37,11 +37,13 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 
 	@commands.Cog.listener()
 	async def on_message(self, payload: discord.Message):
+		cursor.execute("SELECT * FROM prefix WHERE guild=%s", (payload.guild.id))
+		prefix = cursor.fetchone().get('prefix')
+		if str(payload.clean_content).startswith(prefix):
+			return
 		if payload.author == self.bot.user:
 			return
 		elif self.bot.user in payload.mentions and payload.mention_everyone is False:
-			cursor.execute("SELECT * FROM prefix WHERE guild=%s", (payload.guild.id))
-			prefix = cursor.fetchone().get('prefix')
 			cursor.execute("SELECT * FROM var")
 			inviteURL = [row['inviteURL'] for row in cursor.fetchall()][0]
 			embed = discord.Embed(title="Hi !",
