@@ -40,7 +40,8 @@ class Help(commands.HelpCommand):
 				if cog:
 					name = cog.qualified_name
 					description = cog.description or "No description"
-					embed.add_field(name=f"{name} [{amount_commands}]", value=">>> " + description, inline=False)
+					embed.add_field(
+						name=f"{name} [{amount_commands}]", value=">>> " + description, inline=False)
 				else:
 					pass
 
@@ -50,7 +51,7 @@ class Help(commands.HelpCommand):
 	async def send_command_help(self, command):
 		signature = self.get_command_signature(command)
 		embed = HelpEmbed(title=signature,
-						  description="```{}```".format(command.description or "No Description Specified By Developer"))
+		                  description="```{}```".format(command.description or "No Description Specified By Developer"))
 
 		if cog := command.cog:
 			embed.add_field(name="Category", value=cog.qualified_name)
@@ -63,17 +64,22 @@ class Help(commands.HelpCommand):
 		embed.add_field(name="Enabled?", value=can_run)
 
 		if command._buckets and (cooldown := command._buckets._cooldown):
-			embed.add_field(name="Cooldown", value=f"{cooldown.rate} per {cooldown.per:.0f} seconds")
+			embed.add_field(
+				name="Cooldown", value=f"{cooldown.rate} per {cooldown.per:.0f} seconds")
 
 		await self.send(embed=embed)
 
 	async def send_help_embed(self, title, description, commands):
-		embed = HelpEmbed(title=title, description=description or "No Description Specified By Developer")
-
+		embed = HelpEmbed(
+			title=title, description=description or "No Description Specified By Developer")
+		commandNames = list()
+		descriptionFormatted = str(">>> ")
 		if filtered_commands := await self.filter_commands(commands):
 			for command in filtered_commands:
-				embed.add_field(name=command.name, value=command.description or "No Description Specified By Developer")
-
+				commandNames.append(command.name)
+		for command in commandNames:
+			descriptionFormatted += '`{}` '.format(command)
+		embed.add_field(name="\u200b", value=descriptionFormatted)
 		await self.send(embed=embed)
 
 	async def send_group_help(self, group):

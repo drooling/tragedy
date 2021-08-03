@@ -3,9 +3,9 @@ import logging
 import discord
 from discord.ext import commands
 import os
-from dislash import *
 import bot.utils.utilities as tragedy
 import sys
+
 
 token = tragedy.DotenvVar("token")
 
@@ -20,7 +20,6 @@ bot = commands.AutoShardedBot(tragedy.custom_prefix, intents=discord.Intents.all
                               strip_after_prefix=True, loop=asyncio.get_event_loop(),
                               activity=discord.Activity(name="linktr.ee/incriminating",
                                                         type=discord.ActivityType.watching), status=discord.Status.dnd)
-slash = SlashClient(bot)
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.INFO)

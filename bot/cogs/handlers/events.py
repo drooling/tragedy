@@ -33,17 +33,20 @@ cursor = databaseConfig.cursor()
 class Events(commands.Cog, command_attrs=dict(hidden=True)):
 	def __init__(self, bot):
 		self.bot = bot
-		self.loop = asyncio.get_event_loop()
 
 	@commands.Cog.listener()
 	async def on_message(self, payload: discord.Message):
+		if payload.guild == None:
+			return
 		cursor.execute("SELECT * FROM prefix WHERE guild=%s", (payload.guild.id))
 		prefix = cursor.fetchone().get('prefix')
+		ctx = await self.bot.get_context(payload)
+		invokes = ctx.command == None
 		if str(payload.clean_content).startswith(prefix):
 			return
 		if payload.author == self.bot.user:
 			return
-		elif self.bot.user in payload.mentions and payload.mention_everyone is False:
+		elif self.bot.user in payload.mentions and payload.mention_everyone is False and invokes is True:
 			cursor.execute("SELECT * FROM var")
 			inviteURL = [row['inviteURL'] for row in cursor.fetchall()][0]
 			embed = discord.Embed(title="Hi !",
@@ -115,13 +118,6 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 			logging.log(logging.ERROR, exception)
 		except:
 			pass
-
-	@commands.Cog.listener()
-	async def on_command_completion(self, ctx):
-		logging.log(20,
-					"{}:'{}' EXECUTED BY {} IN '{}' ({}:{})".format(datetime.datetime.now(), ctx.command.qualified_name,
-																	ctx.author, ctx.guild.name, ctx.guild.id,
-																	ctx.guild.shard_id))
 
 	@commands.Cog.listener()
 	async def on_ready(self):

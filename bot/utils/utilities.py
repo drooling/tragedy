@@ -59,7 +59,7 @@ def custom_prefix(bot, message):
 	try:
 		cursor = databaseConfig.cursor()
 		cursor.execute("SELECT * FROM prefix WHERE guild=%s", (str(message.guild.id)))
-		return cursor.fetchone().get("prefix")
+		return ["xv ", cursor.fetchone().get("prefix")]
 	except AttributeError as exc:
 		try:
 			cursor.execute("INSERT INTO prefix (guild, prefix) VALUES (%s, 'xv ')", (str(message.guild.id)))
@@ -75,6 +75,8 @@ def logError(exception: Exception):
 	logging.log(logging.ERROR, exception)
 	traceback.print_exception(type(exception), exception, exception.__traceback__, file=sys.stderr)
 
+def logInfo(message):
+	logging.log(logging.INFO, message)
 
 def wrap(font, text,
          line_width):  # https://github.com/DankMemer/imgen/blob/master/utils/textutils.py (useful asf so i stole it not even gonna cap w you)
