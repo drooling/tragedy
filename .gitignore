@@ -9,4 +9,4 @@ backups/
 **/_environment
 **/.vscode
 venv/
-.idea/
+.idea/**

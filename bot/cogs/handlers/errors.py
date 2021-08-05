@@ -1,7 +1,6 @@
 import discord
-from discord import errors
 from discord.ext import commands
-from discord.ext.commands import MissingPermissions, CheckFailure, CommandNotFound, NotOwner
+from discord.ext.commands import *
 
 import bot.utils.utilities as tragedy
 
@@ -15,66 +14,56 @@ class Errors(commands.Cog, name="on command error"):
 		if isinstance(error, NotOwner):
 			return
 		else:
-			if isinstance(error, NotOwner):
-				embed = discord.Embed(title="Error", description="You do not own me bitch, that shit is owner ONLY",
-									  color=discord.Color.red())
-				await ctx.reply(embed=embed, mention_author=True)
-			elif isinstance(error, commands.CommandOnCooldown):
-				embed = discord.Embed(title="Error",
-									  description="slow down you silly goose or imma have to break ya nigga nigga kneecaps (my great uncle's grandma's cousin's dog's right nut was black btw so i can say it)",
+			if isinstance(error, commands.CommandOnCooldown):
+				embed = discord.Embed(title="Oops !",
+									  description="slow down you silly goose.",
 									  color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, commands.DisabledCommand):
-				embed = discord.Embed(title="Error",
+				embed = discord.Embed(title="Oops !",
 									  description="That command is disabled at the moment you silly goose",
 									  color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, CommandNotFound):
 				pass
 			elif isinstance(error, MissingPermissions):
-				embed = discord.Embed(title="Error",
+				embed = discord.Embed(title="Oops !",
 									  description="That command required permissions ({}) you do not possess you silly goose".format(
 										  ' and '.join(error.missing_perms).removeprefix(" and ")),
 									  color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, commands.BotMissingPermissions):
-				embed = discord.Embed(title="Error", description="I need the \"{}\" permission(s) to do that".format(
+				embed = discord.Embed(title="Oops !", description="I need the \"{}\" permission(s) to do that".format(
 					' and '.join(error.missing_perms).removeprefix(" and ")), color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, CheckFailure):
-				embed = discord.Embed(title="Error", description="{} you silly goose".format(
+				embed = discord.Embed(title="Oops !", description="{} you silly goose".format(
 					" and ".join(error.args).removeprefix(" and ")), color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, commands.BadArgument):
-				embed = discord.Embed(title="Error", description="{} you silly goose".format(
+				embed = discord.Embed(title="Oops !", description="{} you silly goose".format(
 					" and ".join(error.args).removeprefix(" and ")), color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, commands.MissingRequiredArgument):
-				embed = discord.Embed(title="Error",
+				embed = discord.Embed(title="Oops !",
 									  description="You're missing the \"{}\" argument you silly goose".format(
 										  error.param), color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, commands.UnexpectedQuoteError):
-				embed = discord.Embed(title="Error",
+				embed = discord.Embed(title="Oops !",
 									  description="That quote isn't supposed to be there you silly goose",
 									  color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
-			elif isinstance(error, commands.CommandInvokeError):
-				if str(error).count("Forbidden: 403 Forbidden") > 0:
-					embed = discord.Embed(title="Error",
+			elif isinstance(error, CommandInvokeError):
+				if str(error).endswith("Missing Permissions"):
+					embed = discord.Embed(title="Oops !",
 									  description="I am not high enough in the role heirachy to do that you silly goose.",
 									  color=discord.Color.red())
 					await ctx.reply(embed=embed, mention_author=True)
 				else:
-					embed = discord.Embed(title="Error", description="Something went wrong and we're not quite sure what",
-									  color=discord.Color.red())
-					await ctx.reply(embed=embed, mention_author=True)
-					tragedy.logError(error)
+					await tragedy.report(self, ctx, error)
 			else:
-				embed = discord.Embed(title="Error", description="Something went wrong and we're not quite sure what",
-									  color=discord.Color.red())
-				await ctx.reply(embed=embed, mention_author=True)
-				tragedy.logError(error)
+				await tragedy.report(self, ctx, error)
 
 
 def setup(bot):

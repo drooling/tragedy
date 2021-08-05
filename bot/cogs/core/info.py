@@ -178,7 +178,9 @@ class Info(commands.Cog, description="Commands that return information"):
 					                       value=dateutil.parser.parse(str(activity.duration)).strftime('%M:%S'))
 					embeds.append(embedSpotify)
 				if isinstance(activity, CustomActivity):
-					if activity.name is not None and activity.emoji is not None:
+					if activity.name is not None and activity.emoji is not None and activity.emoji.is_custom_emoji() is True:
+						description = ("```<a:{}:{}> {}```".format(activity.emoji.name, activity.emoji.id, activity.name))
+					elif activity.name is not None and activity.emoji is not None:
 						description = ("```{} {}```".format(activity.emoji, activity.name))
 					elif activity.emoji is not None and activity.name is None:
 						description = ("```{}```".format(activity.emoji))
@@ -297,7 +299,7 @@ class Info(commands.Cog, description="Commands that return information"):
 			json = await response.json()
 			if json["status"] == "fail":
 				await ctx.reply(embed=discord.Embed(
-					title="Error",
+					title="Oops !",
 					description="Invalid BTC wallet address",
 					color=Color.red()
 				), mention_author=True)
@@ -315,7 +317,7 @@ class Info(commands.Cog, description="Commands that return information"):
 			json = await response.json()
 			if json["status"] == "fail":
 				await ctx.reply(embed=discord.Embed(
-					title="Error",
+					title="Oops !",
 					description="Invalid BTC transaction",
 					color=Color.red()
 				), mention_author=True)

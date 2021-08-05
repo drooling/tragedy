@@ -29,7 +29,7 @@ class Nsfw(commands.Cog, description="Porn"):
 						                      color=Color.green()).set_image(url=_url)
 						await ctx.reply(embed=embed, mention_author=True)
 			except Exception as exc:
-				embed = discord.Embed(title="Error", description="{} is not a valid type.".format(exc),
+				embed = discord.Embed(title="Oops !", description="{} is not a valid type.".format(exc),
 				                      color=Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
 

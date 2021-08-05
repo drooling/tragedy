@@ -35,14 +35,21 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 		self.bot = bot
 
 	@commands.Cog.listener()
+	async def on_command(self, ctx):
+		try:
+			if await self.bot.is_owner(ctx.author):
+				await ctx.command.reset_cooldown(ctx)
+		except:
+			pass
+
+	@commands.Cog.listener()
 	async def on_message(self, payload: discord.Message):
 		if payload.guild == None:
 			return
-		cursor.execute("SELECT * FROM prefix WHERE guild=%s", (payload.guild.id))
-		prefix = cursor.fetchone().get('prefix')
+		prefixes = tragedy.getServerPrefixes(payload.guild.id)
 		ctx = await self.bot.get_context(payload)
 		invokes = ctx.command == None
-		if str(payload.clean_content).startswith(prefix):
+		if str(payload.clean_content).startswith(tuple(prefixes)):
 			return
 		if payload.author == self.bot.user:
 			return
@@ -50,8 +57,8 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 			cursor.execute("SELECT * FROM var")
 			inviteURL = [row['inviteURL'] for row in cursor.fetchall()][0]
 			embed = discord.Embed(title="Hi !",
-								  description="My name is {} ! My prefix for this server is \"{}\"\nTo invite me to your server click [Here!]({}).".format(
-									  self.bot.user.name, prefix, inviteURL), color=Color.green())
+								  description="My name is {} ! One of my prefix for this server is \"`{}`\" run \"`{}prefix`\" to show all my prefixes\nTo invite me to your server click [Here!]({}).".format(
+									  self.bot.user.name, prefixes[0], prefixes[0], inviteURL), color=Color.green())
 			await payload.reply(embed=embed, mention_author=True)
 		else:
 			return
@@ -111,6 +118,7 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 	async def on_guild_remove(self, guild: discord.Guild):
 		try:
 			cursor.execute("DELETE FROM prefix WHERE guild=%s", (guild.id))
+			cursor.execute("DELETE FROM warns WHERE guild=%s", (guild.id))
 			databaseConfig.commit()
 		except Exception as exc:
 			exc_type, exc_value, exc_tb = sys.exc_info()

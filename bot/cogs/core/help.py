@@ -84,7 +84,7 @@ class Help(commands.HelpCommand):
 
 	async def send_group_help(self, group):
 		title = self.get_command_signature(group)
-		await self.send_help_embed(title, group.help, group.commands)
+		await self.send_help_embed(title, group.description, group.commands)
 
 	async def send_cog_help(self, cog):
 		title = cog.qualified_name or "No"

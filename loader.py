@@ -18,8 +18,8 @@ class Initiate(commands.Cog):
 
 bot = commands.AutoShardedBot(tragedy.custom_prefix, intents=discord.Intents.all(), case_insensitive=True,
                               strip_after_prefix=True, loop=asyncio.get_event_loop(),
-                              activity=discord.Activity(name="linktr.ee/incriminating",
-                                                        type=discord.ActivityType.watching), status=discord.Status.dnd)
+														status=discord.Status.dnd, owner_id=865281969051271168)
+                                                        
 
 logger = logging.getLogger('discord')
 logger.setLevel(logging.INFO)

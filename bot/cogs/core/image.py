@@ -4,6 +4,7 @@ import aiohttp
 import cv2
 import discord
 import numpy
+import urllib.parse
 from PIL import Image, ImageOps, ImageFilter, ImageDraw, ImageFont
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
@@ -13,7 +14,7 @@ from bot.utils.utilities import *
 
 
 class Images(commands.Cog, description="Commands that manipulate images"):
-	def __init__(self, bot: commands.Bot):
+	def __init__(self, bot: commands.AutoShardedBot):
 		self.bot = bot
 		self.aiohttp = aiohttp.ClientSession()
 		self.assets = "bot/assets/"
@@ -31,7 +32,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 			inverted.save(final, format='PNG')
 			final.seek(0)
 			await ctx.send(file=discord.File(final, filename=self.fileName + '.png'),
-			               embed=ImageEmbed(command="invert").Generate())
+						   embed=ImageEmbed(command="invert").Generate())
 
 	@commands.command(description="sketchs user's avatar", help="sketch [member]")
 	@commands.cooldown(1, 5, BucketType.member)
@@ -48,7 +49,24 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 			ioImage.save(final, format='PNG')
 			final.seek(0)
 			await ctx.send(file=discord.File(final, filename=self.fileName + '.png'),
-			               embed=ImageEmbed(command="sketch").Generate())
+						   embed=ImageEmbed(command="sketch").Generate())
+
+	@commands.command(description="Oil paints user's avatar", help="oil [member]") # https://towardsdatascience.com/painting-and-sketching-with-opencv-in-python-4293026d78b
+	@commands.cooldown(1, 5, BucketType.member)
+	async def oil(self, ctx, member: commands.MemberConverter = None):
+		member = ctx.author if not member else member
+		avatar = await member.avatar_url_as(format='png', size=1024).read()
+		with io.BytesIO(avatar) as buffer:
+			bytesForCV2 = numpy.asarray(bytearray(buffer.read()), dtype=numpy.uint8)
+			image = cv2.imdecode(bytesForCV2, cv2.IMREAD_COLOR)
+			cv2.waitKey(1)
+			oil = cv2.xphoto.oilPainting(image, 7, 1)
+			final = io.BytesIO()
+			ioImage = Image.fromarray(oil)
+			ioImage.save(final, format='PNG')
+			final.seek(0)
+			await ctx.send(file=discord.File(final, filename=self.fileName + '.png'),
+						   embed=ImageEmbed(command="oil").Generate())
 
 	@commands.command(description="Blurs user's avatar", help="blur [member]")
 	@commands.cooldown(1, 5, BucketType.member)
@@ -62,7 +80,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 			blurred.save(final, format='PNG')
 			final.seek(0)
 			await ctx.send(file=discord.File(final, filename=self.fileName + '.png'),
-			               embed=ImageEmbed(command="blur").Generate())
+						   embed=ImageEmbed(command="blur").Generate())
 
 	@commands.command(description="Posterize's user's avatar", help="posterize [member]")
 	@commands.cooldown(1, 5, BucketType.member)
@@ -76,10 +94,52 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 			posterized.save(final, format='PNG')
 			final.seek(0)
 			await ctx.send(file=discord.File(final, filename=self.fileName + '.png'),
-			               embed=ImageEmbed(command="posterize").Generate())
+						   embed=ImageEmbed(command="posterize").Generate())
+
+	@commands.command(description="Solarize's user's avatar", help="solarize [member]")
+	@commands.cooldown(1, 5, BucketType.member)
+	async def solarize(self, ctx, member: commands.MemberConverter = None):
+		member = ctx.author if not member else member
+		avatar = await member.avatar_url_as(format='png', size=1024).read()
+		with io.BytesIO(avatar) as buffer:
+			image = Image.open(buffer).convert("RGB")
+			solarize = ImageOps.solarize(image, 255)
+			final = io.BytesIO()
+			solarize.save(final, format='PNG')
+			final.seek(0)
+			await ctx.send(file=discord.File(final, filename=self.fileName + '.png'),
+						   embed=ImageEmbed(command="solarize").Generate())
+
+	@commands.command(description="Flip's user's avatar", help="flip [member]")
+	@commands.cooldown(1, 5, BucketType.member)
+	async def flip(self, ctx, member: commands.MemberConverter = None):
+		member = ctx.author if not member else member
+		avatar = await member.avatar_url_as(format='png', size=1024).read()
+		with io.BytesIO(avatar) as buffer:
+			image = Image.open(buffer).convert("RGB")
+			flip = ImageOps.flip(image)
+			final = io.BytesIO()
+			flip.save(final, format='PNG')
+			final.seek(0)
+			await ctx.send(file=discord.File(final, filename=self.fileName + '.png'),
+						   embed=ImageEmbed(command="flip").Generate())
+
+	@commands.command(description="Flip's user's avatar", help="mirror [member]")
+	@commands.cooldown(1, 5, BucketType.member)
+	async def mirror(self, ctx, member: commands.MemberConverter = None):
+		member = ctx.author if not member else member
+		avatar = await member.avatar_url_as(format='png', size=1024).read()
+		with io.BytesIO(avatar) as buffer:
+			image = Image.open(buffer).convert("RGB")
+			mirror = ImageOps.mirror(image)
+			final = io.BytesIO()
+			mirror.save(final, format='PNG')
+			final.seek(0)
+			await ctx.send(file=discord.File(final, filename=self.fileName + '.png'),
+						   embed=ImageEmbed(command="mirror").Generate())
 
 	@commands.command(description="Convert user's avatar to black and white", help="grayscale [member]",
-	                  aliases=["baw", "b&w"])
+					  aliases=["baw", "b&w"])
 	@commands.cooldown(1, 5, BucketType.member)
 	async def grayscale(self, ctx, member: commands.MemberConverter = None):
 		member = ctx.author if not member else member
@@ -91,7 +151,17 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 			grayscale.save(final, format='PNG')
 			final.seek(0)
 			await ctx.send(file=discord.File(final, filename=self.fileName + '.png'),
-			               embed=ImageEmbed(command="grayscale").Generate())
+						   embed=ImageEmbed(command="grayscale").Generate())
+
+	@commands.command(name='achievement')
+	@commands.cooldown(1, 10, BucketType.user)
+	async def _achievement(self, ctx, *, achievement: str = None):
+		achievement = 'linktr.ee/incriminating.' if not achievement else achievement
+		encodedAchievement = urllib.parse.quote(achievement)
+		url = 'https://minecraftskinstealer.com/achievement/{}/Achievement%20Earned!/{}'.format(random.randrange(40), encodedAchievement)
+		await ctx.send(embed=discord.Embed(
+			color=discord.Colour.green()
+			).set_image(url=url))
 
 	@commands.command(aliases=["deepfry", "deepfried"], description="Deep fries user's avatar", help="fry [user]")
 	@commands.cooldown(1, 5, type=BucketType.member)
@@ -101,14 +171,14 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 					str(ctx.author.avatar_url_as(format="png")))) as r:
 				res = await r.json()
 				embed = discord.Embed(title="Deep Fried {} !".format(ctx.author.name),
-				                      color=discord.Color.green()).set_image(url=res['message'])
+									  color=discord.Color.green()).set_image(url=res['message'])
 				await ctx.reply(embed=embed, mention_author=True)
 		else:
 			async with self.aiohttp.get("https://nekobot.xyz/api/imagegen?type=deepfry&image={}".format(
 					str(user.avatar_url_as(format="png")))) as r:
 				res = await r.json()
 				embed = discord.Embed(title="Deep Fried {} !".format(user.display_name),
-				                      color=discord.Color.green()).set_image(url=res['message'])
+									  color=discord.Color.green()).set_image(url=res['message'])
 				await ctx.reply(embed=embed, mention_author=True)
 
 	@commands.command(description="Returns video of obama saying specified phrase", help="obama [message]")
@@ -144,7 +214,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 				avatar.save(final, format="PNG")
 				final.seek(0)
 				await ctx.send(file=discord.File(final, filename=self.fileName + '.png'),
-				               embed=ImageEmbed(command="triggered").Generate())
+							   embed=ImageEmbed(command="triggered").Generate())
 
 	@commands.command(name="gay", description="Makes person gay", help="gay [member]")
 	async def _gay(self, ctx: commands.Context, member: commands.MemberConverter = None):
@@ -161,7 +231,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 				avatar.save(final, format="PNG")
 				final.seek(0)
 				await ctx.send(file=discord.File(final, filename=self.fileName + '.png'),
-				               embed=ImageEmbed(command="gay").Generate())
+							   embed=ImageEmbed(command="gay").Generate())
 
 	@commands.command(name="jail", description="Puts person behind bars", help="jail [member]")
 	async def _jail(self, ctx: commands.Context, member: commands.MemberConverter = None):
@@ -177,7 +247,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 				avatar.save(final, format="PNG")
 				final.seek(0)
 				await ctx.send(file=discord.File(final, filename=self.fileName + '.png'),
-				               embed=ImageEmbed(command="prison").Generate())
+							   embed=ImageEmbed(command="prison").Generate())
 
 	@commands.command(name="communist", description="Makes person a communist", help="communist [member]")
 	async def _communist(self, ctx: commands.Context, member: commands.MemberConverter = None):
@@ -194,7 +264,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 				avatar.save(final, format="PNG")
 				final.seek(0)
 				await ctx.send(file=discord.File(final, filename=self.fileName + '.png'),
-				               embed=ImageEmbed(command="communist").Generate())
+							   embed=ImageEmbed(command="communist").Generate())
 
 	@commands.command(name="pan", description="Pan.", help="pan [member]")
 	async def _pan(self, ctx: commands.Context, member: commands.MemberConverter = None):
@@ -214,14 +284,14 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 					font = ImageFont.truetype(
 						self.assets + "fonts/Arial.ttf", 35)
 					panWriter.text((410, 15), wrap(font=font, text="@{} dis you??".format(member.name), line_width=325),
-					               font=font, fill="Black")
+								   font=font, fill="Black")
 					pan.save(final, format="PNG")
 					final.seek(0)
 					await ctx.send(file=discord.File(final, filename=self.fileName + '.png'),
-					               embed=ImageEmbed(command="ipan").Generate())
+								   embed=ImageEmbed(command="ipan").Generate())
 
 	@commands.command(name="presentation", description="Makes lisa simpson presentation meme with your text",
-	                  help="presentation <message> [member]")
+					  help="presentation <message> [member]")
 	async def _presentation(self, ctx: commands.Context, *, message: str, member: commands.MemberConverter = None):
 		async with ctx.typing():
 			member = ctx.author if not member else member
@@ -235,11 +305,11 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 				presentationWriter = ImageDraw.Draw(presentation)
 				font = ImageFont.truetype(self.assets + "fonts/Arial.ttf", 50)
 				presentationWriter.text((120, 70), wrap(font=font, text=message, line_width=450), font=font,
-				                        fill="Black")
+										fill="Black")
 				presentation.save(final, format="PNG")
 				final.seek(0)
 				await ctx.send(file=discord.File(final, filename=self.fileName + '.png'),
-				               embed=ImageEmbed(command="presentation").Generate())
+							   embed=ImageEmbed(command="presentation").Generate())
 
 	@commands.command(name="warned", description="Warned by the judge", help="warned [member]")
 	async def _warned(self, ctx: commands.Context, member: commands.MemberConverter = None):
@@ -254,10 +324,10 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 				warned.save(final, format="PNG")
 				final.seek(0)
 				await ctx.send(file=discord.File(final, filename=self.fileName + '.png'),
-				               embed=ImageEmbed(command="warned").Generate())
+							   embed=ImageEmbed(command="warned").Generate())
 
 	@commands.command(name="menace", description="Shows how much of a menace to society the specified person is",
-	                  help="menace <member>")
+					  help="menace <member>")
 	async def _menace(self, ctx: commands.Context, member: commands.MemberConverter):
 		async with ctx.typing():
 			if await self.bot.is_owner(member):
@@ -274,12 +344,12 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 				baseWriter = ImageDraw.Draw(base)
 				font = ImageFont.truetype(self.assets + "fonts/Arial.ttf", 35)
 				baseWriter.text((30, 150), wrap(font=font, text="@{} chillin".format(ctx.author.name), line_width=240),
-				                font=font, fill="Black")
+								font=font, fill="Black")
 				final = io.BytesIO()
 				base.save(final, format="PNG")
 				final.seek(0)
 				await ctx.send(file=discord.File(final, filename=self.fileName + '.png'),
-				               embed=ImageEmbed(command="menace").Generate())
+							   embed=ImageEmbed(command="menace").Generate())
 
 	@commands.command(name="burn", description="Burns the specified text", help="burn <message>")
 	async def _burn(self, ctx: commands.Context, *, message: str):
@@ -287,16 +357,16 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 		burnitWriter = ImageDraw.Draw(burnit)
 		font = ImageFont.truetype(self.assets + "fonts/Arial.ttf", 50)
 		burnitWriter.text((105, 185), wrap(font, text=message,
-		                                   line_width=365), font=font, fill="Black")
+										   line_width=365), font=font, fill="Black")
 		final = io.BytesIO()
 		burnit.save(final, format="PNG")
 		final.seek(0)
 		await ctx.send(file=discord.File(final, filename=self.fileName + '.png'),
-		               embed=ImageEmbed(command="burn").Generate())
+					   embed=ImageEmbed(command="burn").Generate())
 
 	@commands.command(name="match", description="Tinder match", help="match <lover1> [lover2]")
 	async def _match(self, ctx: commands.Context, lover1: commands.MemberConverter,
-	                 lover2: commands.MemberConverter = None):
+					 lover2: commands.MemberConverter = None):
 		async with ctx.typing():
 			lover2 = ctx.author if not lover2 else lover2
 			lover1 = await lover1.avatar_url_as(format='png', size=1024).read()
@@ -311,7 +381,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 				base.save(final, format="PNG")
 				final.seek(0)
 				await ctx.send(file=discord.File(final, filename=self.fileName + '.png'),
-				               embed=ImageEmbed(command="match").Generate())
+							   embed=ImageEmbed(command="match").Generate())
 
 	@commands.is_nsfw()
 	@commands.command(name="fuck", description="Rail tf outta specified user", help="fuck <user>")
@@ -330,10 +400,10 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 					gif.append(frame)
 				final = io.BytesIO()
 				gif[0].save(final, format='gif', save_all=True,
-				            append_images=gif[1:], loop=0, optimize=True)
+							append_images=gif[1:], loop=0, optimize=True)
 				final.seek(0)
 				await ctx.send(file=discord.File(final, filename=self.fileName + '.gif'),
-				               embed=ImageEmbed(command="porno", extension=".gif").Generate())
+							   embed=ImageEmbed(command="porno", extension=".gif").Generate())
 
 	@commands.command(name="baby", description="bonk", help="baby <user>")
 	async def _baby(self, ctx: commands.Context, user: commands.MemberConverter):
@@ -351,10 +421,10 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 					gif.append(frame)
 				final = io.BytesIO()
 				gif[0].save(final, format='gif', save_all=True,
-				            append_images=gif[1:], loop=0, optimize=True)
+							append_images=gif[1:], loop=0, optimize=True)
 				final.seek(0)
 				await ctx.send(file=discord.File(final, filename=self.fileName + '.gif'),
-				               embed=ImageEmbed(command="bonk", extension=".gif").Generate())
+							   embed=ImageEmbed(command="bonk", extension=".gif").Generate())
 
 
 def setup(bot: commands.Bot):
