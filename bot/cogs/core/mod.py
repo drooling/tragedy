@@ -7,13 +7,12 @@ from asyncio.locks import Condition
 import nanoid
 import random
 import typing
+import pymysql.cursors
 
 import discord
 from discord import message
 from discord.channel import DMChannel
 from discord_components.component import Button, ButtonStyle
-import pymysql
-import pprint
 import humanize
 from discord.colour import Color
 from discord.ext import commands
@@ -28,32 +27,20 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
 	def __init__(self, bot):
 		self.bot = bot
 		self.cache = {}
-		self.pool = pymysql.connect(
-			host=tragedy.DotenvVar("mysqlServer"),
-			user="root",
-			password=tragedy.DotenvVar("mysqlPassword"),
-			port=3306,
-			database="tragedy",
-			charset='utf8mb4',
-			cursorclass=pymysql.cursors.DictCursor,
-			read_timeout=5,
-			write_timeout=5,
-			connect_timeout=5,
-			autocommit=True
-		)
-		self.mysqlPing.start()
 		DiscordComponents(self.bot)
-
-	@tasks.loop(seconds=35)
-	async def mysqlPing(self):
-		connected = bool(self.pool.open)
-		tragedy.logInfo(
-			"Testing connection to mysql database () --> {}".format(str(connected).upper()))
-		if connected is False:
-			self.pool.ping(reconnect=True)
-			tragedy.logInfo("Reconnecting to database () --> SUCCESS")
-		else:
-			pass
+		self.pool = pymysql.connect(
+	        host=tragedy.DotenvVar("mysqlServer"),
+	        user="root",
+	        password=tragedy.DotenvVar("mysqlPassword"),
+	        port=3306,
+	        database="tragedy",
+	        charset='utf8mb4',
+	        cursorclass=pymysql.cursors.DictCursor,
+	        read_timeout=5,
+	        write_timeout=5,
+	        connect_timeout=5,
+	        autocommit=True
+        )
 
 	@commands.Cog.listener()
 	async def on_message_delete(self, message):
@@ -199,12 +186,14 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
 								  color=Color.green())
 			await ctx.send(embed=embed)
 
-	@commands.group(ignore_extra=True, invoke_without_command=True, description="`warn` will warn specified user", help="warn <member> [reason]")
+	@commands.command(description="`warn` will warn specified user", help="warn <member> [reason]")
 	@commands.guild_only()
 	@commands.has_permissions(manage_guild=True)
 	@commands.cooldown(1, 15, BucketType.guild)
 	async def warn(self, ctx: commands.Context, member: commands.MemberConverter, *, reason: str = None):
 		reason = "None Specified." if reason is None else reason
+		if member.bot is True or member.top_role >= ctx.author.top_role:
+			return await ctx.send("You cannot do that.")
 		try:
 			with self.pool.cursor() as cursor:
 				cursor.execute("INSERT INTO warns (id, guild, user, warner, reason) VALUES (%s, %s, %s, %s, %s)", (nanoid.generate(size=10), ctx.guild.id, member.id, ctx.author.id, reason))

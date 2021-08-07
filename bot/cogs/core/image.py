@@ -14,7 +14,7 @@ from bot.utils.utilities import *
 
 
 class Images(commands.Cog, description="Commands that manipulate images"):
-	def __init__(self, bot: commands.AutoShardedBot):
+	def __init__(self, bot):
 		self.bot = bot
 		self.aiohttp = aiohttp.ClientSession()
 		self.assets = "bot/assets/"

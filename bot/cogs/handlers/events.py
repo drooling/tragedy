@@ -13,26 +13,23 @@ from discord.ext import commands
 
 import bot.utils.utilities as tragedy
 
-databaseConfig = pymysql.connect(
-	host=tragedy.DotenvVar("mysqlServer"),
-	user="root",
-	password=tragedy.DotenvVar("mysqlPassword"),
-	port=3306,
-	database="tragedy",
-	charset='utf8mb4',
-	cursorclass=pymysql.cursors.DictCursor,
-	read_timeout=5,
-	write_timeout=5,
-	connect_timeout=5,
-	autocommit=True
-)
-
-cursor = databaseConfig.cursor()
-
 
 class Events(commands.Cog, command_attrs=dict(hidden=True)):
 	def __init__(self, bot):
 		self.bot = bot
+		self.pool = pymysql.connect(
+	        host=tragedy.DotenvVar("mysqlServer"),
+	        user="root",
+	        password=tragedy.DotenvVar("mysqlPassword"),
+	        port=3306,
+	        database="tragedy",
+	        charset='utf8mb4',
+	        cursorclass=pymysql.cursors.DictCursor,
+	        read_timeout=5,
+	        write_timeout=5,
+	        connect_timeout=5,
+	        autocommit=True
+        )
 
 	@commands.Cog.listener()
 	async def on_command(self, ctx):
@@ -54,8 +51,7 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 		if payload.author == self.bot.user:
 			return
 		elif self.bot.user in payload.mentions and payload.mention_everyone is False and invokes is True:
-			cursor.execute("SELECT * FROM var")
-			inviteURL = [row['inviteURL'] for row in cursor.fetchall()][0]
+			inviteURL = discord.utils.oauth_url(873015585821319189, permissions=discord.Permissions.all())
 			embed = discord.Embed(title="Hi !",
 								  description="My name is {} ! One of my prefix for this server is \"`{}`\" run \"`{}prefix`\" to show all my prefixes\nTo invite me to your server click [Here!]({}).".format(
 									  self.bot.user.name, prefixes[0], prefixes[0], inviteURL), color=Color.green())
@@ -101,8 +97,8 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 	@commands.Cog.listener()
 	async def on_guild_join(self, guild: discord.Guild):
 		try:
-			cursor.execute("INSERT INTO prefix (guild) VALUES (%s)", (guild.id))
-			databaseConfig.commit()
+			self.pool.cursor.execute("INSERT INTO prefix (guild) VALUES (%s)", (guild.id))
+			self.pool.commit()
 			print("[Logging] Added {} to prefix database.".format(guild.id))
 		except Exception as exc:
 			tragedy.logError(exc)
@@ -117,9 +113,9 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 	@commands.Cog.listener()
 	async def on_guild_remove(self, guild: discord.Guild):
 		try:
-			cursor.execute("DELETE FROM prefix WHERE guild=%s", (guild.id))
-			cursor.execute("DELETE FROM warns WHERE guild=%s", (guild.id))
-			databaseConfig.commit()
+			self.pool.cursor.execute("DELETE FROM prefix WHERE guild=%s", (guild.id))
+			self.pool.cursor.execute("DELETE FROM warns WHERE guild=%s", (guild.id))
+			self.pool.commit()
 		except Exception as exc:
 			exc_type, exc_value, exc_tb = sys.exc_info()
 			exception = traceback.format_exception(exc_type, exc_value, exc_tb)
@@ -134,24 +130,3 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 
 def setup(bot):
 	bot.add_cog(Events(bot))
-
-
-while __name__ == "__main__":
-	try:
-		databaseConfig.ping(reconnect=False)
-	except Exception as exc:
-		logging.log(logging.CRITICAL, exc)
-		logging.log(logging.INFO, "Attempting to reconnect to MySQL database in '{}'".format(__file__[:-3]))
-		databaseConfig = pymysql.connect(
-			host=tragedy.DotenvVar("mysqlServer"),
-			user="root",
-			password=tragedy.DotenvVar("mysqlPassword"),
-			port=3306,
-			database="tragedy",
-			charset='utf8mb4',
-			cursorclass=pymysql.cursors.DictCursor,
-			read_timeout=5,
-			write_timeout=5,
-			connect_timeout=5,
-			autocommit=True
-		)

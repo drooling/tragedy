@@ -39,7 +39,6 @@ def DotenvVar(var: str):
 	load_dotenv('.env')
 	return os.getenv(var)
 
-
 def EmojiBool(bool: bool):
 	switch = {
 		True: ":white_check_mark:",
