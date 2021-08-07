@@ -3,14 +3,12 @@
 import asyncio
 from datetime import datetime
 import io
-from asyncio.locks import Condition
 import nanoid
 import random
 import typing
 import pymysql.cursors
 
 import discord
-from discord import message
 from discord.channel import DMChannel
 from discord_components.component import Button, ButtonStyle
 import humanize

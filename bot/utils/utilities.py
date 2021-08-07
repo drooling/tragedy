@@ -27,8 +27,6 @@ databaseConfig = pymysql.connect(
 	connect_timeout=5,
 	autocommit=True
 )
-
-
 class Utilities():
 	def __init__(self, bot):
 		self.bot = bot
@@ -133,24 +131,3 @@ def wrap(font, text,
 	if line:
 		lines.append(' '.join(line))
 	return ('\n'.join(lines)).strip()
-
-
-while __name__ == "__main__":
-	try:
-		databaseConfig.ping(reconnect=False)
-	except Exception as exc:
-		logging.log(logging.CRITICAL, exc)
-		logging.log(logging.INFO, "Attempting to reconnect to MySQL database in '{}'".format(__file__[:-3]))
-		databaseConfig = pymysql.connect(
-			host=os.getenv("mysqlServer"),
-			user="root",
-			password=os.getenv("mysqlPassword"),
-			port=3306,
-			database="tragedy",
-			charset='utf8mb4',
-			cursorclass=pymysql.cursors.DictCursor,
-			read_timeout=5,
-			write_timeout=5,
-			connect_timeout=5,
-			autocommit=True
-		)

@@ -5,12 +5,13 @@ import cv2
 import discord
 import numpy
 import urllib.parse
+import random
 from PIL import Image, ImageOps, ImageFilter, ImageDraw, ImageFont
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 
 from bot.utils.imageEmbed import ImageEmbed
-from bot.utils.utilities import *
+from bot.utils.utilities import Utilities
 
 
 class Images(commands.Cog, description="Commands that manipulate images"):
@@ -283,7 +284,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 					panWriter = ImageDraw.Draw(pan)
 					font = ImageFont.truetype(
 						self.assets + "fonts/Arial.ttf", 35)
-					panWriter.text((410, 15), wrap(font=font, text="@{} dis you??".format(member.name), line_width=325),
+					panWriter.text((410, 15), Utilities.Utilities.wrap(font=font, text="@{} dis you??".format(member.name), line_width=325),
 								   font=font, fill="Black")
 					pan.save(final, format="PNG")
 					final.seek(0)
@@ -304,7 +305,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 				final = io.BytesIO()
 				presentationWriter = ImageDraw.Draw(presentation)
 				font = ImageFont.truetype(self.assets + "fonts/Arial.ttf", 50)
-				presentationWriter.text((120, 70), wrap(font=font, text=message, line_width=450), font=font,
+				presentationWriter.text((120, 70), Utilities.wrap(font=font, text=message, line_width=450), font=font,
 										fill="Black")
 				presentation.save(final, format="PNG")
 				final.seek(0)
@@ -343,7 +344,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 				base.paste(Grief, (320, 40))
 				baseWriter = ImageDraw.Draw(base)
 				font = ImageFont.truetype(self.assets + "fonts/Arial.ttf", 35)
-				baseWriter.text((30, 150), wrap(font=font, text="@{} chillin".format(ctx.author.name), line_width=240),
+				baseWriter.text((30, 150), Utilities.wrap(font=font, text="@{} chillin".format(ctx.author.name), line_width=240),
 								font=font, fill="Black")
 				final = io.BytesIO()
 				base.save(final, format="PNG")
@@ -356,7 +357,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
 		burnit = Image.open(self.assets + "pillow/burnit.bmp")
 		burnitWriter = ImageDraw.Draw(burnit)
 		font = ImageFont.truetype(self.assets + "fonts/Arial.ttf", 50)
-		burnitWriter.text((105, 185), wrap(font, text=message,
+		burnitWriter.text((105, 185), Utilities.wrap(font, text=message,
 										   line_width=365), font=font, fill="Black")
 		final = io.BytesIO()
 		burnit.save(final, format="PNG")
