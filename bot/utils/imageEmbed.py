@@ -4,7 +4,6 @@ import discord
 from discord.colour import Color
 from discord.embeds import Embed
 
-
 class ImageEmbed(Embed):
 	def __init__(self, extension=".png", **kwargs):
 		self.extension = extension

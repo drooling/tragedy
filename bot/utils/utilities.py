@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 
 load_dotenv(".env")
 
-databaseConfig = pymysql.connect(
+__databaseConfig__ = pymysql.connect(
 	host=os.getenv("mysqlServer"),
 	user="root",
 	password=os.getenv("mysqlPassword"),
@@ -27,9 +27,6 @@ databaseConfig = pymysql.connect(
 	connect_timeout=5,
 	autocommit=True
 )
-class Utilities():
-	def __init__(self, bot):
-		self.bot = bot
 
 columnNames = ["defaultPrefix","prefix1", "prefix2", "prefix3", "prefix4", "prefix5"]
 
@@ -60,8 +57,8 @@ def custom_prefix(bot, message):
 		return getServerPrefixes(message.guild.id)
 	except:
 		try:
-			databaseConfig.cursor().execute("INSERT INTO prefix (guild) VALUES (%s)", (str(message.guild.id)))
-			databaseConfig.commit()
+			__databaseConfig__.cursor().execute("INSERT INTO prefix (guild) VALUES (%s)", (str(message.guild.id)))
+			__databaseConfig__.commit()
 			print("[Logging] Added {} ({}) to prefix database.".format(message.guild.name, str(message.guild.id)))
 			return getServerPrefixes(message.guild.id)
 		except Exception as exc:
@@ -79,30 +76,22 @@ async def report(self, ctx, error):
 		await ctx.reply(embed=embed, mention_author=True)
 
 		if len(error) < 1850:
-			await owner.send(
-			'ID - **`{}`**\n**Error in the command `{}`**, Invoked in `{}` by `{}`\n```\n'.format(
-				id,
-				ctx.command.name,
-				ctx.guild.name,
-				ctx.author
-			) + error + '\n```')
+			await owner.send('ID - **`{}`**\n**Error in the command `{}`**, Invoked in `{}` by `{}`\n```\n'.format(id, ctx.command.name, ctx.guild.name, ctx.author) + error + '\n```')
 		else:
-			await owner.send(
-				content='**Error in the command `{}`**, Invoked in `{}` by `{}`'.format(ctx.command.name,
-																							 ctx.guild.name,
-																							 ctx.author),
-				file=discord.File(fp=io.BytesIO(error.encode(errors='ignore')), filename='exception.txt')
-			)
+			await owner.send(content='**Error in the command `{}`**, Invoked in `{}` by `{}`'.format(ctx.command.name, ctx.guild.name, ctx.author), file=discord.File(fp=io.BytesIO(error.encode(errors='ignore')), filename='exception.txt'))
 	except Exception as exc:
 		print(traceback.format_exception(etype=type(exc), value=exc, tb=exc.__traceback__))
 
 def getServerPrefixes(guild_id):
 	columns = ["defaultPrefix","prefix1", "prefix2", "prefix3", "prefix4", "prefix5"]
-	with databaseConfig.cursor() as cursor:
+	with __databaseConfig__.cursor() as cursor:
 		cursor.execute(
 			"SELECT * FROM prefix WHERE guild=%s", (str(guild_id))
 			)
-		response = dict(cursor.fetchone())
+		try:
+			response = dict(cursor.fetchone())
+		except TypeError:
+			return ['xv ']
 		prefixes = list()
 		for col in columns:
 			if response.get(col) != None:

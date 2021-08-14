@@ -4,6 +4,7 @@ import asyncio
 import hashlib
 import random
 import re
+import string
 
 import aiohttp
 import discord
@@ -47,7 +48,7 @@ class Fun(commands.Cog, description="Fun commands to make discord just a bit bet
 			                      color=Color.green())
 			for _index in range(len(parse["result"])):
 				embed.add_field(
-					name="\u200b", value="**{}**".format(parse["result"][_index]["word"]), inline=False)
+					name='\u200b', value="**{}**".format(parse["result"][_index]["word"]), inline=False)
 			await ctx.send(embed=embed)
 
 	@commands.command(description="Shortens specified url with 3 different url shorteners", help="shorten <url>")
@@ -88,8 +89,8 @@ class Fun(commands.Cog, description="Fun commands to make discord just a bit bet
 	async def _rr(self, ctx: commands.Context, *, url: str):
 		phrases = ["rickroll", "rick roll",
 		           "rick astley", "never gonna give you up"]
-		source = str(await (await self.aiohttp.get(url)).content.read()).lower()
-		rickRoll = bool((re.findall('|'.join(phrases), source, re.MULTILINE)))
+		source = str(await (await self.aiohttp.get(url, allow_redirects=True)).content.read()).lower()
+		rickRoll = bool((re.findall('|'.join(phrases), source, re.MULTILINE | re.IGNORECASE)))
 		await ctx.reply(embed=discord.Embed(
 			title="Rick Roll Detector",
 			color=Color.red() if rickRoll is True else Color.green(),

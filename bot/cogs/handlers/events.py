@@ -51,7 +51,7 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 		if payload.author == self.bot.user:
 			return
 		elif self.bot.user in payload.mentions and payload.mention_everyone is False and invokes is True:
-			inviteURL = discord.utils.oauth_url(873015585821319189, permissions=discord.Permissions.all())
+			inviteURL = discord.utils.oauth_url(875514281993601055, permissions=discord.Permissions.all())
 			embed = discord.Embed(title="Hi !",
 								  description="My name is {} ! One of my prefix for this server is \"`{}`\" run \"`{}prefix`\" to show all my prefixes\nTo invite me to your server click [Here!]({}).".format(
 									  self.bot.user.name, prefixes[0], prefixes[0], inviteURL), color=Color.green())
@@ -97,7 +97,7 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 	@commands.Cog.listener()
 	async def on_guild_join(self, guild: discord.Guild):
 		try:
-			self.pool.cursor.execute("INSERT INTO prefix (guild) VALUES (%s)", (guild.id))
+			self.pool.cursor().execute("INSERT INTO prefix (guild) VALUES (%s)", (guild.id))
 			self.pool.commit()
 			print("[Logging] Added {} to prefix database.".format(guild.id))
 		except Exception as exc:
@@ -113,8 +113,8 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 	@commands.Cog.listener()
 	async def on_guild_remove(self, guild: discord.Guild):
 		try:
-			self.pool.cursor.execute("DELETE FROM prefix WHERE guild=%s", (guild.id))
-			self.pool.cursor.execute("DELETE FROM warns WHERE guild=%s", (guild.id))
+			self.pool.cursor().execute("DELETE FROM prefix WHERE guild=%s", (guild.id))
+			self.pool.cursor().execute("DELETE FROM warns WHERE guild=%s", (guild.id))
 			self.pool.commit()
 		except Exception as exc:
 			exc_type, exc_value, exc_tb = sys.exc_info()

@@ -9,7 +9,6 @@ SkipNext = "\u23E9"
 
 EMOJIS = [SkipPrevious, Previous, End, Next, SkipNext]
 
-
 class Paginator:
 	def __init__(self, bot, ctx, pages, timeout=30):
 		self.bot = bot

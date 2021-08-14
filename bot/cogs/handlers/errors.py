@@ -1,4 +1,5 @@
 import discord
+import difflib
 from discord.ext import commands
 from discord.ext.commands import *
 
@@ -8,6 +9,12 @@ import bot.utils.utilities as tragedy
 class Errors(commands.Cog, name="on command error"):
 	def __init__(self, bot: commands.Bot):
 		self.bot = bot
+		self.commandList = list()
+		self.on_cog_load()
+
+	def on_cog_load(self):
+		for cmd in self.bot.commands:
+			self.commandList.append(cmd.qualified_name)
 
 	@commands.Cog.listener()
 	async def on_command_error(self, ctx: commands.Context, error):
@@ -25,43 +32,36 @@ class Errors(commands.Cog, name="on command error"):
 									  color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, CommandNotFound):
-				pass
+				description = "Command not found.\n\n**Did you Mean?:**\n{0}".format('`' + ('` `'.join(difflib.get_close_matches(ctx.invoked_with, self.commandList))) + '`')
+				embed = discord.Embed(title="Error 404", color=discord.Color.red(), description=description if not description.endswith("``") else "Command not found.")
+				if embed.description != "Command not found.":
+					await ctx.send(embed=embed)
+				else:
+					return
 			elif isinstance(error, MissingPermissions):
 				embed = discord.Embed(title="Oops !",
-									  description="That command required permissions ({}) you do not possess you silly goose".format(
-										  ' and '.join(error.missing_perms).removeprefix(" and ")),
+									  description="You need `{0}` permissions for that".format(
+										  ' '.join(error.missing_perms[0].split('_'))),
 									  color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, commands.BotMissingPermissions):
-				embed = discord.Embed(title="Oops !", description="I need the \"{}\" permission(s) to do that".format(
-					' and '.join(error.missing_perms).removeprefix(" and ")), color=discord.Color.red())
+				embed = discord.Embed(title="Oops !", description="I need `{0}` permissions to do that".format(
+					' '.join(error.missing_perms[0].split('_'))), color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, CheckFailure):
 				embed = discord.Embed(title="Oops !", description="{} you silly goose".format(
-					" and ".join(error.args).removeprefix(" and ")), color=discord.Color.red())
+					error.args[0]
+				), color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, commands.BadArgument):
 				embed = discord.Embed(title="Oops !", description="{} you silly goose".format(
-					" and ".join(error.args).removeprefix(" and ")), color=discord.Color.red())
+				   error.param), color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, commands.MissingRequiredArgument):
 				embed = discord.Embed(title="Oops !",
-									  description="You're missing the \"{}\" argument you silly goose".format(
+									  description="You're missing the `{0}` argument you silly goose".format(
 										  error.param), color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
-			elif isinstance(error, commands.UnexpectedQuoteError):
-				embed = discord.Embed(title="Oops !",
-									  description="That quote isn't supposed to be there you silly goose",
-									  color=discord.Color.red())
-				await ctx.reply(embed=embed, mention_author=True)
-			elif isinstance(error, CommandInvokeError):
-				if str(error).endswith("Missing Permissions"):
-					embed = discord.Embed(title="Oops !",
-									  description="I am not high enough in the role heirachy to do that you silly goose.",
-									  color=discord.Color.red())
-					await ctx.reply(embed=embed, mention_author=True)
-				else:
-					await tragedy.report(self, ctx, error)
 			else:
 				await tragedy.report(self, ctx, error)
 

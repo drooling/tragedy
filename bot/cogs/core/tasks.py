@@ -3,7 +3,7 @@ import asyncio
 import pprint
 from discord.ext import commands, tasks
 import pymysql.cursors
-import utils.utilities as tragedy
+import bot.utils.utilities as tragedy
 
 
 class Tasks(commands.Cog):
