@@ -7,9 +7,12 @@ from discord.embeds import Embed
 class ImageEmbed(Embed):
 
 	@classmethod
-	def from_command(cls, extension='.png', **kwargs):
-		command = kwargs.pop("command")
-		title = json.load(open("bot/assets/json/imageEmbedTitles.json", "r"))[command] or str(command).title().strip()
+	def make(cls, command, extension='.png'):
+		try:
+			title = json.load(open("bot/assets/json/imageEmbedTitles.json", "r"))[command]
+		except KeyError:
+			title = str(command).title().strip()
+
 		embedImage = discord.Embed(title=title, color=Color.green())
 		embedImage.set_image(
 			url="attachment://linktr.ee_incriminating{}".format(

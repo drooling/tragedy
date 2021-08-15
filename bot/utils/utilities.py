@@ -8,6 +8,8 @@ import string
 import sys
 import traceback
 import discord
+from discord.errors import InvalidArgument
+from discord.ext import commands
 
 import pymysql.cursors
 from dotenv import load_dotenv
@@ -29,6 +31,26 @@ __databaseConfig__ = pymysql.connect(
 )
 
 columnNames = ["defaultPrefix","prefix1", "prefix2", "prefix3", "prefix4", "prefix5"]
+
+class InstagramConverter(commands.Converter):
+	async def convert(self, ctx, username):
+		formatted = username
+		validChars = list(string.ascii_lowercase + '._1234567890')
+
+		if str(username).startswith('@'):
+			formatted = str(username)[1:]
+		if len(formatted) > 29:
+			raise InvalidArgument
+		for char in list(username):
+			if char not in validChars:
+				return InvalidArgument
+			else:
+				pass
+		else:
+			pass
+		
+		print(validChars)
+		return formatted.casefold()
 
 def DotenvVar(var: str):
 	load_dotenv('.env')

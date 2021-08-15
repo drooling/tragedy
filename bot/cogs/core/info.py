@@ -5,6 +5,7 @@ from datetime import datetime
 import aiohttp
 import dateutil.parser
 import discord
+from discord import user
 import humanize
 from discord.activity import *
 from discord.colour import Color
@@ -399,6 +400,16 @@ class Info(commands.Cog, description="Commands that return information"):
 		embed.add_field(name="Home Page", value=home_page)
 		embed.set_thumbnail(url="https://i.imgur.com/syDydkb.png")
 		await ctx.send(embed=embed)
+
+	@commands.command(aliases=["insta"])
+	async def instagram(self, ctx, username: tragedy.InstagramConverter):
+		async with __import__('aiohttp').ClientSession(headers={"User-Agent": "Mozilla"}).get("https://www.instagram.com/{0}/?__a=1".format(username)) as request:
+			print(await request.text())
+			jObj = await request.json()
+			embed = discord.Embed(title="@%s" % (username), color=Color.green())
+			embed.set_image(url=jObj["graphql"]["user"]["profile_pic_url_hd"])
+			embed.add_field(name="Bio", value=("No Bio." if jObj["graphql"]["user"]["biography"] == "" else jObj["graphql"]["user"]["biography"]))
+			await ctx.send(embed=embed)
 
 
 def setup(bot):
