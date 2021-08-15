@@ -19,8 +19,12 @@ class ImageEmbed(Embed):
 
 		self.title = getTitle()
 
-	def Generate(self):
+
+	def __call__(self) -> Embed:
 		embedImage = discord.Embed(title=self.title, color=Color.green())
 		embedImage.set_image(
-			url="attachment://linktr.ee_incriminating{}".format(self.extension))
+			url="attachment://linktr.ee_incriminating{}".format(
+				self.extension
+				)
+			)
 		return embedImage
