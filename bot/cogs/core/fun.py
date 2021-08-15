@@ -92,10 +92,8 @@ class Fun(commands.Cog, description="Fun commands to make discord just a bit bet
 		source = str(await (await self.aiohttp.get(url, allow_redirects=True)).content.read()).lower()
 		rickRoll = bool((re.findall('|'.join(phrases), source, re.MULTILINE | re.IGNORECASE)))
 		await ctx.reply(embed=discord.Embed(
-			title="Rick Roll Detector",
+			title="Rick Roll {} in webpage".format("was found" if rickRoll is True else "was not found"),
 			color=Color.red() if rickRoll is True else Color.green(),
-			description="Rick Roll {} in webpage".format(
-				"was found" if rickRoll is True else "was not found")
 		), mention_author=True)
 
 	@commands.command(name="hash", description="Hashes provided text with provided algorithm",

@@ -5,26 +5,15 @@ from discord.colour import Color
 from discord.embeds import Embed
 
 class ImageEmbed(Embed):
-	def __init__(self, extension=".png", **kwargs):
-		self.extension = extension
-		self.command = kwargs.pop("command")
 
-		def getTitle():
-			try:
-				return json.load(
-					open("bot/assets/json/imageEmbedTitles.json", "r")
-				)[self.command]
-			except KeyError:
-				return str(self.command).title().strip()
-
-		self.title = getTitle()
-
-
-	def __call__(self) -> Embed:
-		embedImage = discord.Embed(title=self.title, color=Color.green())
+	@classmethod
+	def from_command(cls, extension='.png', **kwargs):
+		command = kwargs.pop("command")
+		title = json.load(open("bot/assets/json/imageEmbedTitles.json", "r"))[command] or str(command).title().strip()
+		embedImage = discord.Embed(title=title, color=Color.green())
 		embedImage.set_image(
 			url="attachment://linktr.ee_incriminating{}".format(
-				self.extension
+				extension
 				)
 			)
 		return embedImage
