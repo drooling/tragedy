@@ -55,7 +55,7 @@ class Errors(commands.Cog, name="on command error"):
 				await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, commands.BadArgument):
 				embed = discord.Embed(title="Oops !", description="{} you silly goose".format(
-				   error.param), color=discord.Color.red())
+				   error.args[0]), color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, commands.MissingRequiredArgument):
 				embed = discord.Embed(title="Oops !",

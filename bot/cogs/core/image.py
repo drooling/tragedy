@@ -11,7 +11,7 @@ from PIL import Image, ImageOps, ImageFilter, ImageDraw, ImageFont
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
 
-from bot.utils.imageEmbed import ImageEmbed
+from bot.utils.imageEmbed import FileType, ImageEmbed
 import bot.utils.utilities as tragedy
 
 
@@ -72,8 +72,8 @@ class Images(commands.Cog, description="Commands that manipulate images"):
             ioImage.save(final, format='PNG')
             final.seek(0)
             await ctx.send(file=discord.File(final, filename=self.fileName + '.png'),
-                           embed=ImageEmbed.make(command="oil"))
-
+                           embed=ImageEmbed.make(command="oil", extension=FileType.PNG))
+            
     @commands.command(description="Blurs user's avatar", help="blur [member]")
     @commands.cooldown(1, 5, BucketType.member)
     async def blur(self, ctx, member: commands.MemberConverter = None):
@@ -204,7 +204,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
                 file.seek(0)
                 sendFile = discord.File(
                     file, filename=self.fileName + '.mp4')
-                await ctx.reply(file=sendFile, embed=ImageEmbed.make(command="obama", extension='.mp4'))
+                ImageEmbed.make(ctx, file=sendFile, command="obama")
 
     @commands.command(name="triggered", description="Makes person triggered", help="triggered [member]")
     async def _triggered(self, ctx: commands.Context, member: commands.MemberConverter = None):
