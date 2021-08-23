@@ -5,12 +5,17 @@ import hashlib
 import random
 import re
 import string
+import json
+import contextlib
+import typing
 
 import aiohttp
 import discord
 from discord.colour import Color
+from discord.errors import InvalidArgument
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
+from discord.ext.commands.errors import BadArgument
 from discord_components import *
 
 
@@ -77,6 +82,23 @@ class Fun(commands.Cog, description="Fun commands to make discord just a bit bet
 		                      description=' '.join(probabilityList))
 		await ctx.send(embed=embed)
 
+	@commands.command(description="Porn", help="nsfw <type>")
+	@commands.is_nsfw()
+	@commands.cooldown(1, 3, type=BucketType.member)
+	async def nsfw(self, ctx, *, type: str):
+		with open("bot/assets/json/nsfw.json", "r") as urls:
+			with contextlib.suppress(KeyError):
+				jObj = json.load(urls)
+				query = jObj[type.replace(' ', '_')]
+				async with aiohttp.ClientSession() as requests:
+					async with requests.get("https://scathach.redsplit.org/v3{}".format(query)) as response:
+						data = await response.json()
+						_url = data["url"]
+						embed = discord.Embed(title=type.title(), description="Take this weirdo",
+						                      color=Color.green()).set_image(url=_url)
+						await ctx.reply(embed=embed, mention_author=True)
+
+
 	@commands.command(aliases=["bubbles", "wrap", "pop"], description="It's just bubble wrap", help="bubblewrap")
 	@commands.cooldown(1, 5, BucketType.member)
 	async def bubblewrap(self, ctx):
@@ -87,8 +109,10 @@ class Fun(commands.Cog, description="Fun commands to make discord just a bit bet
 
 	@commands.command(name="rr?", description="Detects if provided url is a rick-roll", help="rr? <url>")
 	async def _rr(self, ctx: commands.Context, *, url: str):
-		phrases = ["rickroll", "rick roll",
-		           "rick astley", "never gonna give you up"]
+		if not re.match(discord.utils._URL_REGEX, url):
+			raise BadArgument("Invalid URL")
+
+		phrases = ["rickroll", "rick roll", "rick astley", "never gonna give you up"]
 		source = str(await (await self.aiohttp.get(url, allow_redirects=True)).content.read()).lower()
 		rickRoll = bool((re.findall('|'.join(phrases), source, re.MULTILINE | re.IGNORECASE)))
 		await ctx.reply(embed=discord.Embed(

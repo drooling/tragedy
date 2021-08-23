@@ -17,7 +17,7 @@ CREATE TABLE `prefix` (
   `prefix5` varchar(10) DEFAULT NULL,
   `defaultPrefix` varchar(3) DEFAULT 'xv ',
   UNIQUE KEY `guild` (`guild`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Table structure for table `warns`
@@ -33,8 +33,8 @@ CREATE TABLE `warns` (
   `warner` varchar(18) NOT NULL,
   `reason` varchar(125) NOT NULL,
   `time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  UNIQUE KEY `guild` (`guild`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+  UNIQUE KEY `id` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Table structure for table `temp-emails`
@@ -48,4 +48,33 @@ CREATE TABLE `temp-emails` (
   `email` varchar(255),
   UNIQUE KEY `user` (`user`),
   UNIQUE KEY `email` (`email`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Table structure for table `welcome`
+--
+
+DROP TABLE IF EXISTS `welcome`;
+
+
+CREATE TABLE `welcome` (
+  `guild` VARCHAR(18) NOT NULL,
+  `channel` VARCHAR(18) DEFAULT NULL,
+  `message` VARCHAR(1850) NULL DEFAULT 'Welcome user_ping to server_name !',
+  UNIQUE KEY `guild` (`guild`),
+  UNIQUE KEY `channel` (`channel`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Table structure for table `economy`
+--
+
+DROP TABLE IF EXISTS `economy`;
+
+
+CREATE TABLE `economy` (
+  `guild` VARCHAR(18) NOT NULL,
+  `user` VARCHAR(18) NOT NULL,
+  `balance` INT NOT NULL DEFAULT 0,
+  `items` JSON DEFAULT '{}'
+) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;

@@ -4,13 +4,12 @@ import discord
 from discord.ext import commands
 import os
 
-import pymysql.cursors
 import bot.utils.utilities as tragedy
 import sys
 
 token = tragedy.DotenvVar("token")
 
-bot = commands.AutoShardedBot(['xv '] or tragedy.custom_prefix, intents=discord.Intents.all(), case_insensitive=True,
+bot = commands.AutoShardedBot(tragedy.custom_prefix, intents=discord.Intents.all(), case_insensitive=True,
                               strip_after_prefix=True, loop=asyncio.get_event_loop(),
                               status=discord.Status.dnd, owner_id=875513626805555232)
 

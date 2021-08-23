@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
-from datetime import datetime
-import io
-from discord.errors import Forbidden
+import contextlib
+from discord.ext.commands.converter import TextChannelConverter
+
+from discord.ext.commands.errors import BadArgument
+from bot.utils.classes import WelcomeNotConfigured
+from discord.permissions import Permissions
 import nanoid
 import random
 import typing
 import pymysql.cursors
 
 import discord
+import pprint
 from discord.channel import DMChannel
 from discord_components.component import Button, ButtonStyle
 import humanize
@@ -25,8 +29,8 @@ import bot.utils.utilities as tragedy
 class Mod(commands.Cog, description="Commands to moderate your server !"):
     def __init__(self, bot):
         self.bot = bot
-        self.cache = {}
-        DiscordComponents(self.bot)
+        self.snipe_cache = {}
+        self.edit_cache = {}
         self.pool = pymysql.connect(
             host=tragedy.DotenvVar("mysqlServer"),
             user="root",
@@ -40,41 +44,114 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
             connect_timeout=5,
             autocommit=True
         )
+        self.mysqlPing.start()
+        DiscordComponents(self.bot)
+
+    @tasks.loop(seconds=35)
+    async def mysqlPing(self):
+        connected = bool(self.pool.open)
+        pprint.pprint(
+            "Testing connection to mysql database () --> {}".format(str(connected).upper()))
+        if connected is False:
+            self.pool.ping(reconnect=True)
+            pprint.pprint("Reconnecting to database () --> SUCCESS")
+        else:
+            pass
+
+    @commands.Cog.listener()
+    async def on_member_join(self, member: discord.Member):
+        with self.pool.cursor() as cursor:
+            cursor.execute(
+                "SELECT channel, message FROM `welcome` WHERE guild=%s", (member.guild.id))
+            row: dict = cursor.fetchone()
+            try:
+                channelID = row.get("channel")
+                message = row.get("message")
+            except AttributeError:
+                return
+            try:
+                channel = await self.bot.fetch_channel(channelID)
+                await channel.send(self.ConvertMessage(member, message))
+            except:
+                return
+
+    def ConvertMessage(self, member: discord.Member, message: str):
+        variables = {
+            "user": member,
+            "user_ping": member.mention,
+            "user_name": member.name,
+            "server_name": member.guild.name
+        }
+
+        formatted: str = str(message)
+
+        for key in variables.keys():
+            try:
+                formatted = formatted.replace(key, variables.get(key), -1)
+            except:
+                pass
+
+        return formatted
 
     @commands.Cog.listener()
     async def on_message_delete(self, message):
         if message.author.bot is False and isinstance(message.channel, DMChannel) is not True:
-            try:
-                attachment = await message.attachments[0].to_file()
-            except IndexError:
-                attachment = None
-            self.cache[message.channel.id] = [message.content,
-                                              attachment, message.created_at, message.author.id]
+            self.snipe_cache[message.channel.id] = message
+
+    @commands.Cog.listener()
+    async def on_message_edit(self, before: discord.Message, after: discord.Message):
+        if after.author.bot is False and isinstance(after.channel, DMChannel) is not True:
+            self.edit_cache[after.channel.id] = {
+                "before": before, "after": after
+            }
 
     @commands.command()
     @commands.guild_only()
     @commands.cooldown(1, 10, commands.BucketType.member)
     @commands.bot_has_guild_permissions(send_messages=True, embed_links=True)
     async def snipe(self, ctx):
-        if not ctx.channel.id in self.cache:
+        if not ctx.channel.id in self.snipe_cache:
             return await ctx.send('Nothing to snipe.')
-        data = self.cache[ctx.channel.id]
-        user = await self.bot.fetch_user(data[-1])
-        time = data[2]
+        data: discord.Message = self.snipe_cache[ctx.channel.id]
+        time = data.created_at
         embed = discord.Embed(color=Color.green())
-        embed.set_author(name=user.display_name, icon_url=user.avatar_url)
-        if data[0]:
-            embed.description = data[0]
-        if data[1]:
-            if str(data[1].filename).lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
-                embed.set_image(url="attachment://{}".format(data[1].filename))
+        embed.set_author(name=data.author.display_name,
+                         icon_url=data.author.avatar_url)
+        if data.content:
+            embed.description = data.content
+        if data.attachments:
+            if str(data.attachments[0].filename).lower().endswith(('.png', '.jpg', '.jpeg', '.bmp', '.gif')):
+                embed.set_image(
+                    url="attachment://{}".format(data.attachments[0].filename))
                 embed.set_footer(text='Sniped message sent at {}'.format(
                     time.strftime("%I:%M %p")))
-                del self.cache[ctx.channel.id]
-                return await ctx.send(embed=embed, file=data[1])
+                del self.snipe_cache[ctx.channel.id]
+                return await ctx.send(embed=embed, file=await data.attachments[0].to_file())
         embed.set_footer(text='Sniped message sent at {}'.format(
             time.strftime("%I:%M %p")))
-        del self.cache[ctx.channel.id]
+        del self.snipe_cache[ctx.channel.id]
+        await ctx.send(embed=embed)
+
+    @commands.command()
+    @commands.guild_only()
+    @commands.cooldown(1, 10, commands.BucketType.member)
+    @commands.bot_has_guild_permissions(send_messages=True, embed_links=True)
+    async def editsnipe(self, ctx):
+        if not ctx.channel.id in self.edit_cache:
+            return await ctx.send('Nothing to snipe.')
+
+        before: discord.Message = self.edit_cache[ctx.channel.id]["before"]
+        after: discord.Message = self.edit_cache[ctx.channel.id]["after"]
+        edited_at = after.created_at
+
+        embed = discord.Embed(color=Color.green())
+        embed.set_author(name=after.author.display_name,
+                         icon_url=after.author.avatar_url)
+        if after.content:
+            embed.description = before.content
+        embed.set_footer(text='Sniped message edited at {}'.format(
+            edited_at.strftime("%I:%M %p")))
+        del self.edit_cache[ctx.channel.id]
         await ctx.send(embed=embed)
 
     @commands.command(ignore_extra=True, description="kicks specified member from server",
@@ -130,34 +207,31 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
     @commands.has_permissions(ban_members=True)
     @commands.bot_has_guild_permissions(ban_members=True)
     @commands.cooldown(1, 5, type=BucketType.member)
-    async def ban(self, ctx, member: commands.MemberConverter, *, reason: str = None):
+    async def ban(self, ctx, members: commands.Greedy[commands.MemberConverter], *, reason: str = None):
         try:
-            if not reason:
-                await member.ban(reason="Banned by {}".format(ctx.author))
-                embed = discord.Embed(title="You Were Banned",
-                                      description="You were banned from {} by {} for an unspecified reason.".format(
-                                          ctx.message.guild.name, ctx.author), color=discord.Color.green())
-                await ctx.reply(embed=discord.Embed(title="Member Banned",
-                                                    description="**{}** was banned by **{}** for an unspecified reason.".format(
-                                                        member, ctx.author), color=discord.Color.green()))
-                try:
-                    await member.send(embed=embed)
-                except:
-                    pass
-            else:
-                await member.ban(reason="Banned by {} for \"{}\"".format(ctx.author, reason))
-                await ctx.reply(embed=discord.Embed(title="Member Banned",
-                                                    description="{} was banned by {} for \"{}\".".format(member.name,
-                                                                                                         ctx.author,
-                                                                                                         reason),
-                                                    color=discord.Color.green()))
-                try:
-                    await member.send(embed=discord.Embed(title="You Were Banned",
-                                                          description="You were banned from **{}** by **{}** for \"{}\".".format(
-                                                              ctx.guild.name, ctx.author, reason),
-                                                          color=discord.Color.green()))
-                except:
-                    pass
+            for member in members:
+                if not reason:
+                    await member.ban(reason="Banned by {}".format(ctx.author))
+                    embed = discord.Embed(title="You Were Banned",
+                                          description="You were banned from {} by {} for an unspecified reason.".format(
+                                              ctx.message.guild.name, ctx.author), color=discord.Color.green())
+                    await ctx.reply(embed=discord.Embed(title="Member Banned",
+                                                        description="**{}** was banned by **{}** for an unspecified reason.".format(
+                                                            member, ctx.author), color=discord.Color.green()))
+                    with contextlib.suppress(Exception):
+                        await member.send(embed=embed)
+                else:
+                    await member.ban(reason="Banned by {} for \"{}\"".format(ctx.author, reason))
+                    await ctx.reply(embed=discord.Embed(title="Member Banned",
+                                                        description="{} was banned by {} for \"{}\".".format(member.name,
+                                                                                                             ctx.author,
+                                                                                                             reason),
+                                                        color=discord.Color.green()))
+                    with contextlib.suppress(Exception):
+                        await member.send(embed=discord.Embed(title="You Were Banned",
+                                                              description="You were banned from **{}** by **{}** for \"{}\".".format(
+                                                                  ctx.guild.name, ctx.author, reason),
+                                                              color=discord.Color.green()))
         except discord.Forbidden:
             embed = discord.Embed(title="Oops !",
                                   description="I am not high enough in the role heirachy to do that you silly goose.",
@@ -197,7 +271,7 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
                 await ctx.send(embed=embed)
         except discord.Forbidden:
             embed = discord.Embed(title="Oops !",
-                                  description="I am not high enough in the role heirachy to do that you silly goose.",
+                                  description="I cannot do that that you silly goose.",
                                   color=discord.Color.red())
             await ctx.reply(embed=embed, mention_author=True)
 
@@ -269,7 +343,7 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
                         await Confirm.edit(embed=embed, components=[])
                         await ctx.message.delete()
                         await Confirm.delete()
-                    elif interaction.component.label == "Clear warnings":
+                    elif interaction.component.label == "Clear warnings" and Permissions.manage_guild in ctx.author.guild_permissions:
                         await Confirm.edit(embed=embed, components=[])
                         await ctx.message.delete()
                         await Confirm.delete()
@@ -277,7 +351,7 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
                             cursor.execute(
                                 "DELETE FROM warns WHERE guild=%s AND user=%s", (ctx.guild.id, member.id))
                         await ctx.send("Cleared all of {}'s warnings.".format(member.mention), delete_after=5)
-                    elif interaction.component.label == "Remove a warning":
+                    elif interaction.component.label == "Remove a warning" and Permissions.manage_guild in ctx.author.guild_permissions:
                         await Confirm.edit(embed=embed, components=[])
                         SelectOptions = []
                         for _id in ids:
@@ -387,10 +461,86 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
 
     @commands.guild_only()
     @commands.has_permissions(manage_messages=True)
+    @commands.group(ignore_extra=True, invoke_without_command=True, description="Auto-welcome commands", help="welcome")
+    async def welcome(self, ctx):
+        with self.pool.cursor() as cursor:
+            cursor.execute(
+                "SELECT channel, message FROM `welcome` WHERE guild=%s", (ctx.guild.id))
+            row: dict = cursor.fetchone()
+            try:
+                channel = row.get("channel")
+                message = row.get("message")
+            except AttributeError:
+                raise WelcomeNotConfigured()
+            channel = await self.bot.fetch_channel(channel)
+            embed = discord.Embed(title="Auto-welcome", description="Your auto-welcome is configured to use %s with the message\n```%s```" %
+                                  (channel.mention, message), color=Color.green())
+            await ctx.send(embed=embed)
+
+    @commands.guild_only()
+    @commands.has_permissions(manage_messages=True)
+    @welcome.group(ignore_extra=True, invoke_without_command=True, description="Set Auto-welcome variables", help="welcome set <variable>")
+    @commands.cooldown(1, 45, BucketType.guild)
+    async def set(self, ctx):
+        embed = discord.Embed(
+            title="Auto-welcome Configuration",
+            description="Use the following commands to configure auto-welcome for this server",
+            color=Color.green()
+        )
+        embed.add_field(name="welcome set channel",
+                        value="Sets the channel to send the welcome messages in", inline=False)
+        embed.add_field(name="welcome set message",
+                        value="Sets the welcome message", inline=False)
+        await ctx.send(embed=embed)
+
+    @set.command()
+    @commands.cooldown(1, 35, BucketType.guild)
+    async def channel(self, ctx, channel: TextChannelConverter):
+        with self.pool.cursor() as cursor:
+            cursor.execute("UPDATE `welcome` SET channel=%s WHERE guild=%s", (str(
+                channel.id), str(ctx.guild.id)))
+        await ctx.send(embed=discord.Embed(
+            title="Auto-welcome Configuration",
+            description="Welcome channel set to `#%s`" % (channel.name),
+            color=Color.green()
+        ))
+
+    @set.command()
+    @commands.cooldown(1, 35, BucketType.guild)
+    async def message(self, ctx, *, message: typing.Optional[str]):
+        if not message:
+            embed = discord.Embed(
+                title="Auto-welcome Configuration",
+                description="You can use the following variables in your welcome message",
+                color=Color.green()
+            )
+            embed.add_field(name="user", value="Member's username#descriminator\nExample: Welcome user ! (Welcome %s !)" % (
+                ctx.author), inline=False)
+            embed.add_field(name="user_ping", value="Ping member\nExample: Welcome user_ping ! (Welcome %s !)" % (
+                ctx.author.mention), inline=False)
+            embed.add_field(name="user_name", value="Member's username\nExample: Welcome user_name ! (Welcome %s !)" % (
+                ctx.author.name), inline=False)
+            embed.add_field(name="server_name", value="Server's name\nExample: Welcome to server_name ! (Welcome to %s !)" % (
+                ctx.guild.name), inline=False)
+            return await ctx.send(embed=embed)
+        if len(message) > 1849:
+            raise BadArgument("Message cannot be over 1850 characters.")
+        else:
+            with self.pool.cursor() as cursor:
+                cursor.execute("UPDATE `welcome` SET message=%s WHERE guild=%s", (str(
+                    message), str(ctx.guild.id)))
+            await ctx.send(embed=discord.Embed(
+                title="Auto-welcome Configuration",
+                description="Welcome message set.",
+                color=Color.green()
+            ))
+
+    @commands.guild_only()
+    @commands.has_permissions(manage_messages=True)
     @commands.bot_has_guild_permissions(manage_messages=True)
     @commands.cooldown(1, 15, type=BucketType.member)
     @commands.group(invoke_without_command=True)
-    async def purge(self, ctx, amount: int):
+    async def purge(self, ctx, amount: typing.Optional[int] = 5):
         await ctx.message.delete()
         await ctx.channel.purge(limit=amount)
         temp = await ctx.send(">>> Purged `{}` Messages".format(amount))
@@ -441,11 +591,6 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
                 return
         except asyncio.exceptions.TimeoutError:
             await Confirm.edit(content="Took too long !", embed=None, components=[])
-
-    @commands.is_owner()
-    @commands.command(name="throw")
-    async def _throw(self, ctx: commands.Context):
-        raise TimeoutError()
 
 
 def setup(bot):

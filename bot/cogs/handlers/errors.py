@@ -1,10 +1,12 @@
 import discord
 import difflib
+import contextlib
+
 from discord.ext import commands
 from discord.ext.commands import *
+from bot.utils.classes import NotVoter, WelcomeNotConfigured
 
 import bot.utils.utilities as tragedy
-
 
 class Errors(commands.Cog, name="on command error"):
 	def __init__(self, bot: commands.Bot):
@@ -48,10 +50,16 @@ class Errors(commands.Cog, name="on command error"):
 				embed = discord.Embed(title="Oops !", description="I need `{0}` permissions to do that".format(
 					' '.join(error.missing_perms[0].split('_'))), color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
+			elif isinstance(error, NotVoter):
+				embed = discord.Embed(title="Oops !", description="That command is only for voters you silly goose !\n To vote for tragedy and get access to that command click [here!](https://top.gg/bot/875514281993601055/vote)", color=discord.Color.red())
+				await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, CheckFailure):
 				embed = discord.Embed(title="Oops !", description="{} you silly goose".format(
 					error.args[0]
 				), color=discord.Color.red())
+				await ctx.reply(embed=embed, mention_author=True)
+			elif isinstance(error, WelcomeNotConfigured):
+				embed = discord.Embed(title="Oops !", description="The `auto-welcome` feature is not fully configured yet !\n Use `welcome setup` to configure it.", color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, commands.BadArgument):
 				embed = discord.Embed(title="Oops !", description="{} you silly goose".format(
@@ -63,7 +71,8 @@ class Errors(commands.Cog, name="on command error"):
 										  error.param), color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
 			else:
-				await tragedy.report(self, ctx, error)
+				with contextlib.suppress(Exception):
+					await tragedy.report(self, ctx, error)
 
 
 def setup(bot):

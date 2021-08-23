@@ -30,17 +30,21 @@ class Paginator:
 
 	async def skip_previous(self):
 		self.index = 0
+		await self.message.remove_reaction(SkipPrevious, self.ctx.message.author)
 
 	async def skip_next(self):
 		self.index = len(self.pages) - 1
+		await self.message.remove_reaction(SkipNext, self.ctx.message.author)
 
 	async def next(self):
 		if self.index != len(self.pages) - 1:
 			self.index += 1
+		await self.message.remove_reaction(Next, self.ctx.message.author)
 
 	async def previous(self):
 		if self.index != 0:
 			self.index -= 1
+		await self.message.remove_reaction(Previous, self.ctx.message.author)
 
 	async def session_end(self):
 		self.paginating = False

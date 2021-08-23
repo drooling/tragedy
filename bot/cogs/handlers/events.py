@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
+import aiohttp
 import datetime
 import logging
 import sys
@@ -9,7 +10,7 @@ import traceback
 import discord
 import pymysql.cursors
 from discord.colour import Color
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 import bot.utils.utilities as tragedy
 
@@ -31,6 +32,12 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 	        autocommit=True
         )
 
+	@tasks.loop(minutes=30)
+	async def post_stats(self):
+		async with aiohttp.ClientSession(headers={"Authorization": tragedy.DotenvVar("top-gg-auth")}) as session:
+			await session.post("https://top.gg/api/bots/875514281993601055/stats", data={"server_count": len(self.bot.guilds)})
+			print("Pushed server count to Top.gg -> SUCCESS")
+
 	@commands.Cog.listener()
 	async def on_command(self, ctx):
 		try:
@@ -51,10 +58,9 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 		if payload.author == self.bot.user:
 			return
 		elif self.bot.user in payload.mentions and payload.mention_everyone is False and invokes is True:
-			inviteURL = discord.utils.oauth_url(875514281993601055, permissions=discord.Permissions.all())
 			embed = discord.Embed(title="Hi !",
-								  description="My name is {} ! One of my prefix for this server is \"`{}`\" run \"`{}prefix`\" to show all my prefixes\nTo invite me to your server click [Here!]({}).".format(
-									  self.bot.user.name, prefixes[0], prefixes[0], inviteURL), color=Color.green())
+								  description="My name is {} ! One of my prefix for this server is \"`{}`\" run \"`{}prefix`\" to show all my prefixes\nTo invite me to your server click [Here!](https://top.gg/bot/875514281993601055).\nTo vote for tragedy and get access to more features click [Here!](https://top.gg/bot/875514281993601055/vote)".format(
+									  self.bot.user.name, prefixes[0], prefixes[0]), color=Color.green())
 			await payload.reply(embed=embed, mention_author=True)
 		else:
 			return
@@ -98,8 +104,10 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 	async def on_guild_join(self, guild: discord.Guild):
 		try:
 			self.pool.cursor().execute("INSERT INTO prefix (guild) VALUES (%s)", (guild.id))
+			self.pool.cursor().execute("INSERT INTO welcome (guild) VALUES (%s)", (guild.id))
 			self.pool.commit()
 			print("[Logging] Added {} to prefix database.".format(guild.id))
+			print("[Logging] Added {} to welcome database.".format(guild.id))
 		except Exception as exc:
 			tragedy.logError(exc)
 		try:
@@ -115,6 +123,7 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 		try:
 			self.pool.cursor().execute("DELETE FROM prefix WHERE guild=%s", (guild.id))
 			self.pool.cursor().execute("DELETE FROM warns WHERE guild=%s", (guild.id))
+			self.pool.cursor().execute("DELETE FROM welcome WHERE guild=%s", (guild.id))
 			self.pool.commit()
 		except Exception as exc:
 			exc_type, exc_value, exc_tb = sys.exc_info()

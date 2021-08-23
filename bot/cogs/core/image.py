@@ -204,7 +204,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
                 file.seek(0)
                 sendFile = discord.File(
                     file, filename=self.fileName + '.mp4')
-                ImageEmbed.make(ctx, file=sendFile, command="obama")
+                await ctx.send(file=sendFile)
 
     @commands.command(name="triggered", description="Makes person triggered", help="triggered [member]")
     async def _triggered(self, ctx: commands.Context, member: commands.MemberConverter = None):
@@ -410,7 +410,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
                             append_images=gif[1:], loop=0, optimize=True)
                 final.seek(0)
                 await ctx.send(file=discord.File(final, filename=self.fileName + '.gif'),
-                               embed=ImageEmbed.make(command="porno", extension=".gif"))
+                               embed=ImageEmbed.make(command="porno", extension=FileType.GIF))
 
     @commands.command(name="baby", description="bonk", help="baby <user>")
     async def _baby(self, ctx: commands.Context, user: commands.MemberConverter):

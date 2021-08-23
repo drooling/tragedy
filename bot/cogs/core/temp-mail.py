@@ -1,9 +1,6 @@
 import asyncio
-import datetime
 import io
 import json
-import string
-from typing import List
 
 import discord
 import pymysql.cursors
@@ -36,6 +33,7 @@ class TempMail(commands.Cog, description="Temporary email commands !"):
 		DiscordComponents(bot)
 
 	@commands.group(ignore_extra=True, invoke_without_command=True, description="Temporary email", help="temp")
+	@tragedy.is_voter_only()
 	@commands.cooldown(1, 60, type=BucketType.member)
 	async def temp(self, ctx):
 		with self.pool.cursor() as cursor:

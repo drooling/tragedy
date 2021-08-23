@@ -8,6 +8,7 @@ from discord.colour import Color
 class FileType(enum.Enum):
 	PNG = '.png'
 	MP4 = '.mp4'
+	GIF = '.gif'
 
 class ImageEmbed(discord.Embed):
 

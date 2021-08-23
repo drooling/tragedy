@@ -2,6 +2,8 @@
 
 import asyncio
 import random
+from DiscordUtils.Music import NotConnectedToVoice
+from discord.errors import ClientException
 import humanize
 
 from discord.colour import Color
@@ -11,7 +13,7 @@ import discord
 import DiscordUtils
 import youtube_dl
 
-class Music(commands.Cog):
+class Music(commands.Cog, description="Music duh"):
 	def __init__(self, bot):
 		self.bot = bot
 		self.music = DiscordUtils.Music()
@@ -20,28 +22,56 @@ class Music(commands.Cog):
 	async def join(self, ctx):
 		if not ctx.author.voice or not ctx.author.voice.channel:
 			return await ctx.send('❌ **You are not connected to any voice channel**')
+		if ctx.me.voice:
+			if ctx.me.voice.channel is ctx.author.voice.channel:
+				return await ctx.send('❌ **I am already connected to your voice channel**')
+			elif ctx.me.voice.channel is not ctx.author.voice.channel and not ctx.author.guild_permissions.administrator:
+				return await ctx.author.move_to(ctx.me.voice.channel)
+			elif ctx.me.voice.channel is not ctx.author.voice.channel and ctx.author.guild_permissions.administrator:
+				await ctx.voice_client.disconnect()
+				await ctx.author.voice.channel.connect()
+				return await ctx.send("✅ **Moved to your voice channel** `{}`".format(ctx.author.voice.channel))
 		destination = ctx.author.voice.channel
 		await destination.connect()
 		await ctx.send("✅ **Joined voice channel** `{}`".format(ctx.author.voice.channel))
 	
 	@commands.command()
 	async def leave(self, ctx):
-		await ctx.voice_client.disconnect()
-		await ctx.send("✅ **Left voice channel** `{}`".format(ctx.author.voice.channel))
+		try:
+			if len(ctx.voice_client.channel.members) < 1:
+				if not ctx.author.guild_permissions.administrator:
+					return await ctx.send("❌ **There's other people trying to listen !**")
+				else:
+					await ctx.send("**Cleaning up...**")
+					await ctx.voice_client.disconnect()
+					return await ctx.send("✅ **Left voice channel** `{}`".format(ctx.author.voice.channel))
+			else:
+				await ctx.send("**Cleaning up...**")
+				await ctx.voice_client.disconnect()
+				await ctx.send("✅ **Left voice channel** `{}`".format(ctx.author.voice.channel))
+		except AttributeError as exc:
+			print(exc)
+			return await ctx.send('❌ **I am not connected to any voice channel**')
 	
 	@commands.command()
 	async def play(self, ctx, *, url):
 		player = self.music.get_player(guild_id=ctx.guild.id)
-		if not player:
-			player = self.music.create_player(ctx, ffmpeg_error_betterfix=True)
-		if not ctx.voice_client.is_playing():
-			await ctx.send("**Searching YouTube**")
-			await player.queue(url, search=True, bettersearch=True)
-			song = await player.play()
-			await ctx.send("**Now playing 🎶** `{}`".format(song.name))
-		else:
-			song = await player.queue(url, search=True)
-			await ctx.send("✅ **Queued** `{}`".format(song.name))
+		try:
+			if not player:
+				player = self.music.create_player(ctx, ffmpeg_error_betterfix=True)
+			if not ctx.voice_client.is_playing():
+				await ctx.send("**Searching YouTube...**")
+				await player.queue(url, search=True, bettersearch=True)
+				try:
+					song = await player.play()
+				except ClientException:
+					return await ctx.send('❌ **I am not connected to any voice channel**')
+				await ctx.send("**Now playing 🎶** `{}`".format(song.name))
+			else:
+				song = await player.queue(url, search=True)
+				await ctx.send("✅ **Queued** `{}`".format(song.name))
+		except NotConnectedToVoice:
+			return await ctx.send('❌ **I am not connected to any voice channel**')
 	
 	@commands.command()
 	async def pause(self, ctx):
@@ -76,7 +106,13 @@ class Music(commands.Cog):
 	@commands.command()
 	async def queue(self, ctx):
 		player = self.music.get_player(guild_id=ctx.guild.id)
-		await ctx.send('**' + '**\n**'.join([song.name for song in player.current_queue()]) + '**')
+		queue: str = str()
+		for index, song in enumerate(player.current_queue()):
+			if index == 0:
+				queue += "**{0}.** `{1}` **(Now Playing)**\n".format(index, song.name)
+			else:
+				queue += "{0}. **{1}**\n".format(index, song.name)
+		await ctx.send(queue)
 	
 	@commands.command()
 	async def np(self, ctx):
