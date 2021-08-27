@@ -46,7 +46,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
                 bytearray(buffer.read()), dtype=numpy.uint8)
             image = cv2.imdecode(bytesForCV2, cv2.IMREAD_COLOR)
             cv2.waitKey(1)
-            sketch, color = cv2.pencilSketch(
+            sketch, _ = cv2.pencilSketch(
                 image, sigma_s=60, sigma_r=0.07, shade_factor=0.05)
             final = io.BytesIO()
             ioImage = Image.fromarray(sketch)

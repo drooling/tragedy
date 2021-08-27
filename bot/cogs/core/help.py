@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 
 import contextlib
+import random
+
+import bot.utils.utilities as tragedy
 
 import discord
 from discord.colour import Color
@@ -24,6 +27,9 @@ class Help(commands.HelpCommand):
 				"aliases": ['commands']
 			}
 		)
+
+	def get_command_signature(self, command: commands.Command):
+		return "xv %s %s" % (command.name, command.signature)
 
 	async def send(self, **kwargs):
 		await self.get_destination().send(**kwargs)

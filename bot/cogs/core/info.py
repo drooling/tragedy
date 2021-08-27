@@ -468,7 +468,7 @@ class Info(commands.Cog, description="Commands that return information"):
                 if len(lastline) < 15:
                     list = output.stdout.decode("utf-8")[:4035][:4035 - len(lastline)]
                 else:
-                    list = list = output.stdout.decode("utf-8")[:4035]
+                    list = output.stdout.decode("utf-8")[:4035]
                 await ctx.send(embed=discord.Embed(
                     title=sanitized,
                     description=list,
