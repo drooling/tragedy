@@ -1,25 +1,24 @@
 # -*- coding: utf-8 -*-
 
 import contextlib
-from datetime import datetime
-import typing
-
-import aiohttp
-import subprocess
-import shlex
 import io
 import re
+import shlex
+import subprocess
+import typing
+from datetime import datetime
+
+import aiohttp
+import bot.utils.utilities as tragedy
 import dateutil.parser
 import discord
 import humanize
-from discord.activity import *
 from bot.utils.imageEmbed import FileType, ImageEmbed
+from bot.utils.paginator import Paginator
+from discord.activity import *
 from discord.colour import Color
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
-
-import bot.utils.utilities as tragedy
-from bot.utils.paginator import Paginator
 
 
 class Info(commands.Cog, description="Commands that return information"):
@@ -464,16 +463,18 @@ class Info(commands.Cog, description="Commands that return information"):
                 output = subprocess.run(["bot\\assets\\executables\\Investigo\\Investigo.exe", "--database",
                                         "bot\\assets\\executables\\Investigo\\data.json", sanitized], stdout=subprocess.PIPE, timeout=35)
                 list: str
-                lastline = output.stdout.decode("utf-8")[:4035].splitlines()[-1]
+                lastline = output.stdout.decode(
+                    "utf-8")[:4035].splitlines()[-1]
                 if len(lastline) < 15:
-                    list = output.stdout.decode("utf-8")[:4035][:4035 - len(lastline)]
+                    list = output.stdout.decode(
+                        "utf-8")[:4035][:4035 - len(lastline)]
                 else:
                     list = output.stdout.decode("utf-8")[:4035]
                 await ctx.send(embed=discord.Embed(
                     title=sanitized,
                     description=list,
                     color=Color.green()
-                ).set_footer(text="Username is sanitized don't even try os cmd injection"))
+                ).set_footer(text="username is sanitized dont even try"))
 
 
 def setup(bot):

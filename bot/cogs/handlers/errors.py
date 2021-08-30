@@ -1,12 +1,12 @@
-import discord
-import difflib
 import contextlib
-
-from discord.ext import commands
-from discord.ext.commands import *
-from bot.utils.classes import NotVoter, WelcomeNotConfigured
+import difflib
 
 import bot.utils.utilities as tragedy
+import discord
+from bot.utils.classes import NotVoter, WelcomeNotConfigured
+from discord.ext import commands
+from discord.ext.commands import *
+
 
 class Errors(commands.Cog, name="on command error"):
 	def __init__(self, bot: commands.Bot):

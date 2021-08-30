@@ -1,18 +1,17 @@
 import io
+import random
+import urllib.parse
 
 import aiohttp
+import bot.utils.utilities as tragedy
 import cv2
 import discord
-from discord.ext.commands.core import command
 import numpy
-import urllib.parse
-import random
-from PIL import Image, ImageOps, ImageFilter, ImageDraw, ImageFont
+from bot.utils.imageEmbed import FileType, ImageEmbed
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
-
-from bot.utils.imageEmbed import FileType, ImageEmbed
-import bot.utils.utilities as tragedy
+from discord.ext.commands.core import command
+from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 
 
 class Images(commands.Cog, description="Commands that manipulate images"):
@@ -73,7 +72,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
             final.seek(0)
             await ctx.send(file=discord.File(final, filename=self.fileName + '.png'),
                            embed=ImageEmbed.make(command="oil", extension=FileType.PNG))
-            
+
     @commands.command(description="Blurs user's avatar", help="blur [member]")
     @commands.cooldown(1, 5, BucketType.member)
     async def blur(self, ctx, member: commands.MemberConverter = None):

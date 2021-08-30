@@ -1,5 +1,5 @@
-import json
 import enum
+import json
 
 import discord
 from discord.colour import Color

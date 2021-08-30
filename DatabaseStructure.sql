@@ -58,9 +58,9 @@ DROP TABLE IF EXISTS `welcome`;
 
 
 CREATE TABLE `welcome` (
-  `guild` VARCHAR(18) NOT NULL,
-  `channel` VARCHAR(18) DEFAULT NULL,
-  `message` VARCHAR(1850) NULL DEFAULT 'Welcome user_ping to server_name !',
+  `guild` varchar(18) NOT NULL,
+  `channel` varchar(18) DEFAULT NULL,
+  `message` varchar(1850) NULL DEFAULT 'Welcome user_ping to server_name !',
   UNIQUE KEY `guild` (`guild`),
   UNIQUE KEY `channel` (`channel`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
@@ -73,8 +73,21 @@ DROP TABLE IF EXISTS `economy`;
 
 
 CREATE TABLE `economy` (
-  `guild` VARCHAR(18) NOT NULL,
-  `user` VARCHAR(18) NOT NULL,
+  `guild` varchar(18) NOT NULL,
+  `user` varchar(18) NOT NULL,
   `balance` INT NOT NULL DEFAULT 0,
   `items` JSON DEFAULT '{}'
 ) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+
+--
+-- Table structure for table `auto-mod`
+--
+
+DROP TABLE IF EXISTS `auto-mod`;
+
+
+CREATE TABLE `auto-mod` (
+  `guild` varchar(18) NOT NULL,
+  `config` LONGBLOB NOT NULL DEFAULT '\x80\x04\x95\x90\x00\x00\x00\x00\x00\x00\x00\x8c\x08__main__\x94\x8c\rAutoModConfig\x94\x93\x94)\x81\x94}\x94(\x8c\x10profanity_filter\x94\x89\x8c\x0blink_filter\x94\x89\x8c\x0emention_filter\x94\x89\x8c\x0emention_length\x94K\x00\x8c\x0bspam_filter\x94\x89\x8c\nspam_ratio\x94K\x00K\x00\x86\x94ub.',
+  UNIQUE KEY `guild` (`guild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

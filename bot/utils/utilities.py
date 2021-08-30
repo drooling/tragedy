@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
+import contextlib
 import io
 import logging
-import contextlib
 import os
-import aiohttp
 import pprint
 import random
 import string
 import sys
 import traceback
+
+import aiohttp
 import discord
+import pymysql.cursors
+from bot.cogs.handlers.errors import NotVoter
 from discord.errors import InvalidArgument
 from discord.ext import commands
-from bot.cogs.handlers.errors import NotVoter
-
-import pymysql.cursors
 from dotenv import load_dotenv
 
 load_dotenv(".env")

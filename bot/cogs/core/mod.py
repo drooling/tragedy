@@ -2,28 +2,25 @@
 
 import asyncio
 import contextlib
-from discord.ext.commands.converter import TextChannelConverter
-
-from discord.ext.commands.errors import BadArgument
-from bot.utils.classes import WelcomeNotConfigured
-from discord.permissions import Permissions
-import nanoid
+import pprint
 import random
 import typing
-import pymysql.cursors
-
-import discord
-import pprint
-from discord.channel import DMChannel
-from discord_components.component import Button, ButtonStyle
-import humanize
-from discord.colour import Color
-from discord.ext import commands
-from discord.ext import tasks
-from discord_components import *
-from discord.ext.commands.cooldowns import BucketType
 
 import bot.utils.utilities as tragedy
+import discord
+import humanize
+import nanoid
+import pymysql.cursors
+from bot.utils.classes import WelcomeNotConfigured
+from discord.channel import DMChannel
+from discord.colour import Color
+from discord.ext import commands, tasks
+from discord.ext.commands.converter import TextChannelConverter
+from discord.ext.commands.cooldowns import BucketType
+from discord.ext.commands.errors import BadArgument
+from discord.permissions import Permissions
+from discord_components import *
+from discord_components.component import Button, ButtonStyle
 
 
 class Mod(commands.Cog, description="Commands to moderate your server !"):
@@ -144,13 +141,15 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
         after: discord.Message = self.edit_cache[ctx.channel.id]["after"]
         edited_at = after.created_at
 
-        embed = discord.Embed(color=Color.green())
-        embed.set_author(name=after.author.display_name,
+        embed = discord.Embed(color=Color.green(), timestamp=edited_at)
+        embed.set_author(name=after.author,
+                         url=after.jump_url,
                          icon_url=after.author.avatar_url)
         if after.content:
-            embed.description = before.content
-        embed.set_footer(text='Sniped message edited at {}'.format(
-            edited_at.strftime("%I:%M %p")))
+            embed.add_field(
+                name="Before", value=before.clean_content, inline=False)
+            embed.add_field(
+                name="After", value=after.clean_content, inline=False)
         del self.edit_cache[ctx.channel.id]
         await ctx.send(embed=embed)
 

@@ -1,11 +1,12 @@
 import asyncio
 import logging
+import os
+import sys
+
 import discord
 from discord.ext import commands
-import os
 
 import bot.utils.utilities as tragedy
-import sys
 
 token = tragedy.DotenvVar("token")
 

@@ -1,18 +1,17 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
-import aiohttp
 import datetime
 import logging
 import sys
 import traceback
 
+import aiohttp
+import bot.utils.utilities as tragedy
 import discord
 import pymysql.cursors
 from discord.colour import Color
 from discord.ext import commands, tasks
-
-import bot.utils.utilities as tragedy
 
 
 class Events(commands.Cog, command_attrs=dict(hidden=True)):
@@ -52,7 +51,7 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 			return
 		prefixes = tragedy.getServerPrefixes(payload.guild.id)
 		ctx = await self.bot.get_context(payload)
-		invokes = ctx.command == None
+		invokes = bool(ctx.command == None)
 		if str(payload.clean_content).startswith(tuple(prefixes)):
 			return
 		if payload.author == self.bot.user:
