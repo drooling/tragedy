@@ -17,7 +17,7 @@ from discord_components import *
 
 
 class Fun(commands.Cog, description="Fun commands to make discord just a bit better !"):
-    def __init__(self, bot):
+    def __init__(self, bot: commands.AutoShardedBot):
         self.bot = bot
         self.aiohttp = aiohttp.ClientSession()
         DiscordComponents(bot)

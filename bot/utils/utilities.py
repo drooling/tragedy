@@ -4,20 +4,17 @@ import io
 import logging
 import os
 import pprint
-import random
-import string
-import sys
 import traceback
 
 import aiohttp
 import discord
 import pymysql.cursors
-from bot.cogs.handlers.errors import NotVoter
-from discord.errors import InvalidArgument
+from bot.utils.classes import NotVoter
 from discord.ext import commands
 from dotenv import load_dotenv
 
 load_dotenv(".env")
+
 
 __databaseConfig__ = pymysql.connect(
     host=os.getenv("mysqlServer"),
@@ -33,13 +30,13 @@ __databaseConfig__ = pymysql.connect(
     autocommit=True
 )
 
-columnNames = ["defaultPrefix", "prefix1",
-               "prefix2", "prefix3", "prefix4", "prefix5"]
+columnNames = ["defaultPrefix", "prefix1", "prefix2", "prefix3", "prefix4", "prefix5"]
 
 
 def DotenvVar(var: str):
     return os.getenv(var)
 
+topggSession = aiohttp.ClientSession(headers={"Authorization": DotenvVar("top-gg-auth")})
 
 def EmojiBool(bool: bool):
     switch = {
@@ -51,7 +48,7 @@ def EmojiBool(bool: bool):
 
 def is_voter_only():
     async def predicate(ctx):
-        async with aiohttp.ClientSession(headers={"Authorization": DotenvVar("top-gg-auth")}).get("https://top.gg/api/bots/875514281993601055/check?userId=%s" % (str(ctx.author.id))) as response:
+        async with topggSession.get("https://top.gg/api/bots/875514281993601055/check?userId=%s" % (str(ctx.author.id))) as response:
             json = await response.json()
             print(json)
             if json["voted"] == 1:

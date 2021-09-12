@@ -294,7 +294,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
                     pan.save(final, format="PNG")
                     final.seek(0)
                     await ctx.send(file=discord.File(final, filename=self.fileName + '.png'),
-                                   embed=ImageEmbed.make(command="ipan"))
+                                   embed=ImageEmbed.make(command="pan"))
 
     @commands.command(name="presentation", description="Makes lisa simpson presentation meme with your text",
                       help="presentation <message> [member]")
@@ -430,8 +430,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
                             append_images=gif[1:], loop=0, optimize=True)
                 final.seek(0)
                 await ctx.send(file=discord.File(final, filename=self.fileName + '.gif'),
-                               embed=ImageEmbed.make(command="bonk", extension=".gif"))
-
+                               embed=ImageEmbed.make(command="bonk", extension=FileType.GIF))
 
 def setup(bot: commands.Bot):
     bot.add_cog(Images(bot))

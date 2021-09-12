@@ -418,11 +418,14 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
                 cursor.execute(
                     "SELECT * FROM prefix WHERE guild=%s", (str(ctx.guild.id)))
                 response = cursor.fetchone()
-                column = list(response.keys())[
-                    list(response.values()).index(None)]
+                try:
+                    column = list(response.keys())[
+                        list(response.values()).index(None)]
+                except AttributeError:
+                    column = "prefix1"
             with self.pool.cursor() as cursor:
                 cursor.execute(
-                    "UPDATE prefix SET {0} = %s WHERE guild=%s".format(
+                    "UPDATE prefix SET {0}=%s WHERE guild=%s".format(
                         column), (prefix, str(ctx.guild.id))
                 )
             embed = discord.Embed(title="Prefix Added", description='Added `%s` to my prefixes for this server !' % (prefix),
@@ -470,7 +473,7 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
                 channel = row.get("channel")
                 message = row.get("message")
             except AttributeError:
-                raise WelcomeNotConfigured()
+                raise WelcomeNotConfigured("Welcome has not been configured")
             channel = await self.bot.fetch_channel(channel)
             embed = discord.Embed(title="Auto-welcome", description="Your auto-welcome is configured to use %s with the message\n```%s```" %
                                   (channel.mention, message), color=Color.green())
@@ -590,7 +593,6 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
                 return
         except asyncio.exceptions.TimeoutError:
             await Confirm.edit(content="Took too long !", embed=None, components=[])
-
 
 def setup(bot):
     bot.add_cog(Mod(bot))

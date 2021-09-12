@@ -2,6 +2,7 @@ import ast
 import pprint
 import random
 import typing
+import textwrap
 
 import bot.utils.utilities as tragedy
 import discord
@@ -49,7 +50,7 @@ class Economy(commands.Cog, description="Economy system lol"):
         else:
             pass
 
-    async def get_user_balance(self, guild_id: int, user_id: int):
+    async def get_user_balance(self, guild_id: int, user_id: int) -> int:
         with self.pool.cursor() as cursor:
             try:
                 cursor.execute(
@@ -61,7 +62,7 @@ class Economy(commands.Cog, description="Economy system lol"):
                     "INSERT INTO `economy` (guild, user) VALUES (%s, %s)", (guild_id, user_id))
                 return 0
 
-    async def get_user_items(self, guild_id: int, user_id: int):
+    async def get_user_items(self, guild_id: int, user_id: int) -> dict:
         with self.pool.cursor() as cursor:
             try:
                 cursor.execute(
@@ -73,7 +74,7 @@ class Economy(commands.Cog, description="Economy system lol"):
                     "INSERT INTO `economy` (guild, user) VALUES (%s, %s)", (guild_id, user_id))
                 return {}
 
-    async def add_user_balance(self, guild_id: int, user_id: int, amount: int):
+    async def add_user_balance(self, guild_id: int, user_id: int, amount: int) -> int:
         with self.pool.cursor() as cursor:
             try:
                 cursor.execute(
@@ -84,11 +85,11 @@ class Economy(commands.Cog, description="Economy system lol"):
                     "INSERT INTO `economy` (guild, user, balance) VALUES (%s, %s, %s)", (guild_id, user_id, amount))
                 return amount
 
-    async def buy_item(self, guild_id: int, user_id: int, item: str, amount: typing.Optional[int] = 1):
+    async def buy_item(self, guild_id: int, user_id: int, item: str, amount: typing.Optional[int] = 1) -> bool:
         item = item.casefold()
         price: int = (self.shop.get(item).price * amount)
         balance: int = await self.get_user_balance(guild_id, user_id)
-        count: int = (await self.get_user_items(guild_id, user_id)).get(item) or 0
+        count: int = (await self.get_user_items(guild_id, user_id).get(item)) or 0
 
         if price < balance:
             with self.pool.cursor() as cursor:
@@ -178,10 +179,11 @@ class Economy(commands.Cog, description="Economy system lol"):
             embed = discord.Embed(title="Tragedy shop",
                                   color=Color.green(), description=shop)
         except discord.errors.Forbidden:
-            lastline = shop[:2000].splitlines()[-1]
-            embeds: typing.List = [discord.Embed(title="Tragedy shop", color=Color.green(), description=shop[:2000][:-len(
-                lastline)]), discord.Embed(title="Tragedy shop", color=Color.green(), description=shop[2000 + len(lastline):])]
-            await Paginator(self.bot, ctx, embeds).run()
+            embeds: typing.List = typing.List()
+            for shop in textwrap.wrap(shop, 2000):
+                embed = discord.Embed(title="Tragedy shop", color=Color.green(), description=shop)
+                embeds.append(embed)
+            return await Paginator(self.bot, ctx, embeds).run()
         await ctx.send(embed=embed)
 
 

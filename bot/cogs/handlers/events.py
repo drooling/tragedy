@@ -3,6 +3,8 @@
 import asyncio
 import datetime
 import logging
+import pprint
+import random
 import sys
 import traceback
 
@@ -18,24 +20,37 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 	def __init__(self, bot):
 		self.bot = bot
 		self.pool = pymysql.connect(
-	        host=tragedy.DotenvVar("mysqlServer"),
-	        user="root",
-	        password=tragedy.DotenvVar("mysqlPassword"),
-	        port=3306,
-	        database="tragedy",
-	        charset='utf8mb4',
-	        cursorclass=pymysql.cursors.DictCursor,
-	        read_timeout=5,
-	        write_timeout=5,
-	        connect_timeout=5,
-	        autocommit=True
-        )
+			host=tragedy.DotenvVar("mysqlServer"),
+			user="root",
+			password=tragedy.DotenvVar("mysqlPassword"),
+			port=3306,
+			database="tragedy",
+			charset='utf8mb4',
+			cursorclass=pymysql.cursors.DictCursor,
+			read_timeout=5,
+			write_timeout=5,
+			connect_timeout=5,
+			autocommit=True
+		)
+		self.mysqlPing.start()
+		self.post_stats.start()
 
 	@tasks.loop(minutes=30)
 	async def post_stats(self):
 		async with aiohttp.ClientSession(headers={"Authorization": tragedy.DotenvVar("top-gg-auth")}) as session:
 			await session.post("https://top.gg/api/bots/875514281993601055/stats", data={"server_count": len(self.bot.guilds)})
-			print("Pushed server count to Top.gg -> SUCCESS")
+			pprint.pprint("Pushed server count to Top.gg -> SUCCESS")
+
+	@tasks.loop(seconds=35)
+	async def mysqlPing(self):
+		connected = bool(self.pool.open)
+		pprint.pprint(
+			"Testing connection to mysql database () --> {}".format(str(connected).upper()))
+		if connected is False:
+			self.pool.ping(reconnect=True)
+			pprint.pprint("Reconnecting to database () --> SUCCESS")
+		else:
+			pass
 
 	@commands.Cog.listener()
 	async def on_command(self, ctx):
@@ -58,8 +73,8 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 			return
 		elif self.bot.user in payload.mentions and payload.mention_everyone is False and invokes is True:
 			embed = discord.Embed(title="Hi !",
-								  description="My name is {} ! One of my prefix for this server is \"`{}`\" run \"`{}prefix`\" to show all my prefixes\nTo invite me to your server click [Here!](https://top.gg/bot/875514281993601055).\nTo vote for tragedy and get access to more features click [Here!](https://top.gg/bot/875514281993601055/vote)".format(
-									  self.bot.user.name, prefixes[0], prefixes[0]), color=Color.green())
+								  description="👋 One of my prefix for this server is \"`{}`\"\nTo invite me to your server click [Here!](https://top.gg/bot/875514281993601055).\nTo vote for tragedy and get access to more features click [Here!](https://top.gg/bot/875514281993601055/vote)".format(
+									  random.choice(prefixes)), color=Color.green())
 			await payload.reply(embed=embed, mention_author=True)
 		else:
 			return
@@ -102,8 +117,10 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 	@commands.Cog.listener()
 	async def on_guild_join(self, guild: discord.Guild):
 		try:
-			self.pool.cursor().execute("INSERT INTO prefix (guild) VALUES (%s)", (guild.id))
-			self.pool.cursor().execute("INSERT INTO welcome (guild) VALUES (%s)", (guild.id))
+			with self.pool.cursor() as cursor:
+				cursor.execute("INSERT INTO `prefix` (guild) VALUES (%s)", (guild.id))
+				cursor.execute("INSERT INTO `welcome` (guild) VALUES (%s)", (guild.id))
+				cursor.execute("INSERT INTO `auto-mod` (guild) VALUES (%s)", (guild.id))
 			self.pool.commit()
 			print("[Logging] Added {} to prefix database.".format(guild.id))
 			print("[Logging] Added {} to welcome database.".format(guild.id))
@@ -134,7 +151,6 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 	@commands.Cog.listener()
 	async def on_ready(self):
 		await self.bot.wait_until_ready()
-
 
 def setup(bot):
 	bot.add_cog(Events(bot))

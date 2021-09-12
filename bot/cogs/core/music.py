@@ -114,7 +114,7 @@ class Music(commands.Cog, description="Music duh"):
                 queue += "**{0}.** `{1}` **(Now Playing)**\n".format(
                     index, song.name)
             else:
-                queue += "{0}. **{1}**\n".format(index, song.name)
+                queue += "**{0}.** `{1}`\n".format(index, song.name)
         await ctx.send(queue)
 
     @commands.command()
@@ -164,7 +164,6 @@ class Music(commands.Cog, description="Music duh"):
         player = self.music.get_player(guild_id=ctx.guild.id)
         song = await player.remove_from_queue(int(index))
         await ctx.send("✅ **Removed** `%s` **from queue**" % (song.name))
-
 
 def setup(bot):
     bot.add_cog(Music(bot))

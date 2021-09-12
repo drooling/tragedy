@@ -88,6 +88,10 @@ DROP TABLE IF EXISTS `auto-mod`;
 
 CREATE TABLE `auto-mod` (
   `guild` varchar(18) NOT NULL,
-  `config` LONGBLOB NOT NULL DEFAULT '\x80\x04\x95\x90\x00\x00\x00\x00\x00\x00\x00\x8c\x08__main__\x94\x8c\rAutoModConfig\x94\x93\x94)\x81\x94}\x94(\x8c\x10profanity_filter\x94\x89\x8c\x0blink_filter\x94\x89\x8c\x0emention_filter\x94\x89\x8c\x0emention_length\x94K\x00\x8c\x0bspam_filter\x94\x89\x8c\nspam_ratio\x94K\x00K\x00\x86\x94ub.',
+  `profanity_filter` boolean NOT NULL DEFAULT 0,
+  `invite_filter` boolean NOT NULL DEFAULT 0,
+  `mention_filter` boolean NOT NULL DEFAULT 0,
+  `mention_length` INT NOT NULL DEFAULT 0,
+  `spam_filter` boolean NOT NULL DEFAULT 0,
   UNIQUE KEY `guild` (`guild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

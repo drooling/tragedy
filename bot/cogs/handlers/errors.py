@@ -43,12 +43,12 @@ class Errors(commands.Cog, name="on command error"):
 			elif isinstance(error, MissingPermissions):
 				embed = discord.Embed(title="Oops !",
 									  description="You need `{0}` permissions for that".format(
-										  ' '.join(error.missing_perms[0].split('_'))),
+										  ' '.join(error.missing_perms[0].split('_')).title()),
 									  color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, commands.BotMissingPermissions):
 				embed = discord.Embed(title="Oops !", description="I need `{0}` permissions to do that".format(
-					' '.join(error.missing_perms[0].split('_'))), color=discord.Color.red())
+					' '.join(error.missing_perms[0].split('_')).title()), color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, NotVoter):
 				embed = discord.Embed(title="Oops !", description="That command is only for voters you silly goose !\n To vote for tragedy and get access to that command click [here!](https://top.gg/bot/875514281993601055/vote)", color=discord.Color.red())
