@@ -15,19 +15,7 @@ from discord_components import *
 class TempMail(commands.Cog, description="Temporary email commands !"):
     def __init__(self, bot):
         self.bot = bot
-        self.pool = pymysql.connect(
-            host=tragedy.DotenvVar("mysqlServer"),
-            user="root",
-            password=tragedy.DotenvVar("mysqlPassword"),
-            port=3306,
-            database="tragedy",
-            charset='utf8mb4',
-            cursorclass=pymysql.cursors.DictCursor,
-            read_timeout=5,
-            write_timeout=5,
-            connect_timeout=5,
-            autocommit=True
-        )
+        self.pool = pymysql.connect(host=tragedy.DotenvVar("mysqlServer"), user="root", password=tragedy.DotenvVar("mysqlPassword"), port=3306, database="tragedy", charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor, read_timeout=5, write_timeout=5, connect_timeout=5, autocommit=True)
         self.aiohttp = __import__('aiohttp').ClientSession()
         DiscordComponents(bot)
 

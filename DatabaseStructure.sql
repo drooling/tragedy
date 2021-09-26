@@ -95,3 +95,23 @@ CREATE TABLE `auto-mod` (
   `spam_filter` boolean NOT NULL DEFAULT 0,
   UNIQUE KEY `guild` (`guild`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
+-- Structure for `anti-nuke`
+--
+
+DROP TABLE IF EXISTS `anti-nuke`;
+DROP TABLE IF EXISTS `anti-nuke-whitelist`;
+
+
+CREATE TABLE `anti-nuke` (
+  `guild` varchar(18) NOT NULL,
+  `punishment` INT NOT NULL DEFAULT 0,
+  `self_bot` boolean NOT NULL DEFAULT 0,
+  UNIQUE KEY `guild` (`guild`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE `anti-nuke-whitelist` (
+  `guild` varchar(18) NOT NULL,
+  `id` BIGINT(18) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

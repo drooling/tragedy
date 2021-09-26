@@ -14,14 +14,13 @@ from bot.utils.classes import AutoModConfig
 from discord.colour import Color
 from discord.ext import commands, tasks
 from discord.ext.commands.cooldowns import BucketType, CooldownMapping
-from profanity_filter import ProfanityFilter
 
 
-class Automod(commands.Cog):
+class Automod(commands.Cog, description="Automatic Moderation"):
 	def __init__(self, bot):
 		self.bot = bot
-		self.aiohttp = aiohttp.ClientSession()
-		self.profanity = ProfanityFilter(languages=['en', 'es', 'de', 'fr'])
+		self._URL_REGEX = r'(?P<url><[^: >]+:\/[^ >]+>|(?:https?|steam):\/\/[^\s<]+[^<.,:;\"\'\]\s])'
+		self.aiohttp = aiohttp.ClientSession(headers={"User-Agent": "tragedy", "X-Tragedy-Task": "Auto-Moderation"})
 		self.domains: list = ["top.gg/", "discord.gg/", ".gg/", "discord.io/", "dsc.gg/"]
 		self.pool = pymysql.connect(
 			host=tragedy.DotenvVar("mysqlServer"),
@@ -39,6 +38,7 @@ class Automod(commands.Cog):
 		self.mysqlPing.start()
 		self.clear_counter.start()
 		self.spam_count = {}
+		self.config_cache = {}
 		self.map: CooldownMapping = commands.CooldownMapping.from_cooldown(5, 2, commands.BucketType.member)
 		self.AutoModTypesNONE = AutoModConfig(profanity_filter=False, invite_filter=False, mention_filter=False, mention_length=0, spam_filter=False)
 		self.AutoModTypesLOW = AutoModConfig(profanity_filter=False, invite_filter=False, mention_filter=True, mention_length=8, spam_filter=True)
@@ -95,13 +95,17 @@ class Automod(commands.Cog):
 		with contextlib.suppress(Exception):
 			if message.author.bot:
 				return
-			config = await self.get_config(await self.bot.get_context(message))
+			if not message.guild.id in self.config_cache:
+				config = await self.get_config(await self.bot.get_context(message))
+				self.config_cache[message.guild.id] = config
+			else:
+				config = self.config_cache[message.guild.id]
 			config: AutoModConfig = config
 			if bool(config.spam_filter):
 				await self.spam_filter(message)
 			if bool(config.invite_filter):
 				await self.invite_filter(message)
-				if bool(re.findall(discord.utils._URL_REGEX, message.clean_content)):
+				if bool(re.findall(self._URL_REGEX, message.clean_content)):
 					await self.rickroll_filter(message)
 			if bool(config.mention_filter):
 				if bool(message.raw_mentions):
@@ -133,7 +137,7 @@ class Automod(commands.Cog):
 					color=Color.red(),
 					description="User has been banned for repeated spamming."
 				))
-			await message.channel.purge(limit=5, check=check, before=None, bulk=True)
+			await message.channel.purge(limit=5, check=check, bulk=True)
 			embed = discord.Embed(title="Tragedy Auto-Mod", color=Color.red(), description="Woah Woah ! Slow down bud no spamming.")
 			return await message.channel.send(content="||%s||" % (message.author.mention), embed=embed)
 
@@ -142,27 +146,16 @@ class Automod(commands.Cog):
 			return
 		if any(domain in str(message.content).lower() for domain in self.domains):
 			await message.delete()
-			await message.channel.send(embed=discord.Embed(
-				title="Tragedy Auto-Mod",
-				description="Invite links are not allowed in this server",
-				color=Color.red()
-			))
 
 	async def mention_filter(self, message: discord.Message, max_mentions: int):
 		if len(message.raw_mentions) >= max_mentions:
 			if not message.author.guild_permissions.administrator:
 				await message.delete()
-				await message.channel.send(embed=discord.Embed(
-					title="Tragedy Auto-Mod",
-					description="You cannot mention more than %s members at a time" % (
-						str(max_mentions)),
-					color=Color.red()
-				))
 
 	async def rickroll_filter(self, message: discord.Message):
 		rick_emojis = ['\U0001F1F7', '\U0001F1EE', '\U0001F1E8', '\U0001F1F0']
 		phrases = ["rickroll", "rick roll", "rick astley", "never gonna give you up"]
-		source = str(await (await self.aiohttp.get(re.findall(pattern=discord.utils._URL_REGEX, string=message.content, flags=re.MULTILINE | re.IGNORECASE)[0], allow_redirects=True)).content.read()).lower()
+		source = str(await (await self.aiohttp.get(re.findall(pattern=self._URL_REGEX, string=message.content, flags=re.MULTILINE | re.IGNORECASE)[0], allow_redirects=True)).content.read()).lower()
 		rickRoll = bool(
 			(re.findall('|'.join(phrases), source, re.MULTILINE | re.IGNORECASE)))
 		if rickRoll:
@@ -175,19 +168,9 @@ class Automod(commands.Cog):
 		clean: bool = bool(self.profanity.is_clean(content))
 		if not clean:
 			await message.delete()
-			embed = discord.Embed(
-				description="You cannot use profane language in this server.",
-				color=Color.red()
-			)
-			embed.set_author(name=message.author,
-							 icon_url=message.author.avatar_url)
-			embed.add_field(name="Orginal Profanity",
-							value='||%s||' % (content))
-			embed.add_field(name="Clean", value='`%s`' %
-							(self.profanity.censor(content)))
-			await message.channel.send(embed=embed)
 
 	@commands.group(ignore_extra=True, invoke_without_command=True)
+	@commands.has_permissions(manage_guild=True)
 	@commands.cooldown(1, 45, BucketType.guild)
 	async def automod(self, ctx):
 		await ctx.send(embed=discord.Embed(
@@ -201,7 +184,7 @@ class Automod(commands.Cog):
 		await ctx.send(embed=discord.Embed(
 			title="Tragedy Auto-Mod",
 			color=Color.green(),
-			description="`invite` - 0/1 (0 - Disable | 1 - Enable)"
+			description="`invite` - 0/1 (0 - Disable | 1 - Enable)\n`profanity` - 0/1 (0 - Disable | 1 - Enable)\n`spam` - 0/1 (0 - Disable | 1 - Enable)\n`mention` - 0/1 (0 - Disable | 1 - Enable)\n`mention max` - Number above 3"
 		))
 
 	@set.command()

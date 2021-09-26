@@ -20,6 +20,7 @@ class Fun(commands.Cog, description="Fun commands to make discord just a bit bet
     def __init__(self, bot: commands.AutoShardedBot):
         self.bot = bot
         self.aiohttp = aiohttp.ClientSession()
+        self._URL_REGEX = r'(?P<url><[^: >]+:\/[^ >]+>|(?:https?|steam):\/\/[^\s<]+[^<.,:;\"\'\]\s])'
         DiscordComponents(bot)
 
     @commands.command(description="Searches for specified phrase on urbandictionary.com", help="urban <phrase>")
@@ -63,8 +64,7 @@ class Fun(commands.Cog, description="Fun commands to make discord just a bit bet
                 async with self.aiohttp.get("https://clck.ru/--?url={}".format(url)) as clck:
                     async with self.aiohttp.get("http://tinyurl.com/api-create.php?url={}".format(url)) as tiny:
                         parse = await shrtco.json()
-                        embed.add_field(name="Shortened URL (9qr.de)", value=parse["result"]["full_short_link2"],
-                                        inline=False)
+                        embed.add_field(name="Shortened URL (9qr.de)", value=parse["result"]["full_short_link2"], inline=False)
                         embed.add_field(name="Shortened URL (clck.ru)", value=await clck.text(), inline=False)
                         embed.add_field(name="Shortened URL (tinyurl.com)", value=await tiny.text(), inline=False)
         await ctx.reply(embed=embed, mention_author=True)
@@ -99,17 +99,15 @@ class Fun(commands.Cog, description="Fun commands to make discord just a bit bet
     @commands.cooldown(1, 5, BucketType.member)
     async def bubblewrap(self, ctx):
         wrap = ("||:boom:|| " * 9 + '\r\n') * 9
-        embed = discord.Embed(title="Bubble Wrap !",
-                              description=wrap, color=Color.green())
+        embed = discord.Embed(title="Bubble Wrap !", description=wrap, color=Color.green())
         await ctx.send(embed=embed)
 
     @commands.command(name="rr?", description="Detects if provided url is a rick-roll", help="rr? <url>")
     async def _rr(self, ctx: commands.Context, *, url: str):
-        if not re.match(discord.utils._URL_REGEX, url):
+        if not re.match(self._URL_REGEX, url):
             raise BadArgument("Invalid URL")
 
-        phrases = ["rickroll", "rick roll",
-                   "rick astley", "never gonna give you up"]
+        phrases = ["rickroll", "rick roll", "rick astley", "never gonna give you up"]
         source = str(await (await self.aiohttp.get(url, allow_redirects=True)).content.read()).lower()
         rickRoll = bool(
             (re.findall('|'.join(phrases), source, re.MULTILINE | re.IGNORECASE)))
@@ -119,8 +117,7 @@ class Fun(commands.Cog, description="Fun commands to make discord just a bit bet
             color=Color.red() if rickRoll is True else Color.green(),
         ), mention_author=True)
 
-    @commands.command(name="hash", description="Hashes provided text with provided algorithm",
-                      help="hash <algorithm> <message>")
+    @commands.command(name="hash", description="Hashes provided text with provided algorithm", help="hash <algorithm> <message>")
     @commands.cooldown(1, 5, BucketType.member)
     async def _hash(self, ctx, algorithm: str, *, message):
         algos: dict[str, str] = {

@@ -13,6 +13,9 @@ class NotVoter(commands.CheckFailure):
 class WelcomeNotConfigured(commands.CheckFailure):
     pass
 
+class NotGuildOwner(commands.CheckFailure):
+    pass
+
 class ShopItem(object):
     def __init__(self, item_name, item_price, item_emoji):
         self.name = item_name

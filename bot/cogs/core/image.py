@@ -10,7 +10,6 @@ import numpy
 from bot.utils.imageEmbed import FileType, ImageEmbed
 from discord.ext import commands
 from discord.ext.commands.cooldowns import BucketType
-from discord.ext.commands.core import command
 from PIL import Image, ImageDraw, ImageFilter, ImageFont, ImageOps
 
 

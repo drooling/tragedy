@@ -6,14 +6,13 @@ import re
 import shlex
 import subprocess
 import typing
-from datetime import datetime
+from datetime import datetime, time, timezone
 
 import aiohttp
 import bot.utils.utilities as tragedy
 import dateutil.parser
 import discord
 import humanize
-from bot.utils.imageEmbed import FileType, ImageEmbed
 from bot.utils.paginator import Paginator
 from discord.activity import *
 from discord.colour import Color
@@ -38,12 +37,12 @@ class Info(commands.Cog, description="Commands that return information"):
         embed.set_author(name="{} ({})".format(
             member, member.id), icon_url=member.avatar_url)
         embed.add_field(name="Basic Info",
-                        value="Joined Server At - **{} (Around {})**\nRegistered on Discord At - **{} (Around {})**".format(
+                        value="Joined Server At - **{} (Around {} ago)**\nRegistered on Discord At - **{} (Around {} ago)**".format(
                             humanize.naturaldate(member.joined_at),
-                            humanize.naturaltime(
-                                datetime.now() - member.joined_at),
+                            humanize.naturaldelta(
+                                datetime.utcnow().replace(tzinfo=timezone.utc) - member.joined_at.replace(tzinfo=timezone.utc)),
                             humanize.naturaldate(member.created_at),
-                            humanize.naturaltime(datetime.now() - member.created_at)))
+                            humanize.naturaldelta(datetime.utcnow().replace(tzinfo=timezone.utc) - member.created_at.replace(tzinfo=timezone.utc))))
         embed.add_field(name="Status Info (Buggy)",
                         value="Desktop Status - **{}**\nMobile Status - **{}**\nWeb Application Status - **{}**".format(
                             tragedy.HumanStatus(str(member.desktop_status)),
@@ -62,8 +61,7 @@ class Info(commands.Cog, description="Commands that return information"):
                          text='Requested By: {}'.format(ctx.author.name))
         await ctx.reply(embed=embed, mention_author=True)
 
-    @commands.command(aliases=["guild", "si", "serverinfo", "guildinfo"],
-                      description="Returns info about current guild", help="serverinfo")
+    @commands.command(aliases=["guild", "si", "serverinfo", "guildinfo"], description="Returns info about current guild", help="serverinfo")
     @commands.cooldown(1, 5, type=BucketType.member)
     async def server(self, ctx):
         findbots = sum(1 for member in ctx.guild.members if member.bot)
@@ -72,44 +70,15 @@ class Info(commands.Cog, description="Commands that return information"):
         animicon = "ANIMATED_ICON" in str(ctx.guild.features)
         discoverable = "DISCOVERY" in str(ctx.guild.features)
         banner = "BANNER" in str(ctx.guild.features)
-        vanityFeature = "{} - Vanity URL".format(
-            tragedy.EmojiBool(vanity)) if not vanity else "{} - Vanity URL ({})".format(vanity,
-                                                                                        await ctx.guild.vanity_url)
-        embed = discord.Embed(title='**{}**'.format(ctx.guild.name),
-                              colour=Color.green(), timestamp=datetime.utcnow())
+        vanityFeature = "{} - Vanity URL".format(tragedy.EmojiBool(vanity)) if not vanity else "{} - Vanity URL ({})".format(tragedy.EmojiBool(vanity), str(await ctx.guild.vanity_invite())[15:])
+        embed = discord.Embed(title='**{}**'.format(ctx.guild.name), colour=Color.green(), timestamp=datetime.utcnow())
         embed.set_thumbnail(url=str(ctx.guild.icon_url))
-        embed.add_field(name="Members",
-                        value="Bots: **{}**\nHumans: **{}**\nOnline Members: **{}/{}**".format(str(findbots),
-                                                                                               ctx.guild.member_count - findbots,
-                                                                                               sum(
-                            member.status != discord.Status.offline and not member.bot
-                            for member in
-                            ctx.guild.members),
-                            str(ctx.guild.member_count)))
-        embed.add_field(name="Channels",
-                        value="\U0001f4ac Text Channels: **{}**\n\U0001f50a Voice Channels: **{}**".format(
-                            len(ctx.guild.text_channels), len(ctx.guild.voice_channels)))
-        embed.add_field(name="Important Info",
-                        value="Owner: {}\nVerification Level: **{}**\nGuild ID: **{}**".format(ctx.guild.owner.mention,
-                                                                                               str(ctx.guild.verification_level).title(
-                                                                                               ),
-                                                                                               ctx.guild.id),
-                        inline=False)
-        embed.add_field(name="Other Info",
-                        value="AFK Channel: **{}**\n AFK Timeout: **{} minute(s)**\nCustom Emojis: **{}**\nRole Count: **{}**\nFilesize Limit - **{}**".format(
-                            ctx.guild.afk_channel, str(
-                                ctx.guild.afk_timeout / 60), len(ctx.guild.emojis),
-                            len(ctx.guild.roles), humanize.naturalsize(ctx.guild.filesize_limit)), inline=False)
-        embed.add_field(name="Server Features",
-                        value="{} - Banner\n{}\n{} - Splash Invite\n{} - Animated Icon\n{} - Server Discoverable".format(
-                            tragedy.EmojiBool(
-                                banner), vanityFeature, tragedy.EmojiBool(splash),
-                            tragedy.EmojiBool(animicon), tragedy.EmojiBool(discoverable)))
-        embed.add_field(name="Boost Info",
-                        value="Number of Boosts - **{}**\nBooster Role - **{}**\nBoost Level/Tier - **{}**".format(
-                            str(ctx.guild.premium_subscription_count),
-                            ctx.guild.premium_subscriber_role.mention if ctx.guild.premium_subscriber_role != None else ctx.guild.premium_subscriber_role,
-                            ctx.guild.premium_tier))
+        embed.add_field(name="Members", value="Bots: **{}**\nHumans: **{}**\nOnline Members: **{}/{}**".format(str(findbots), ctx.guild.member_count - findbots, sum( member.status != discord.Status.offline and not member.bot for member in ctx.guild.members), str(ctx.guild.member_count)))
+        embed.add_field(name="Channels", value="\U0001f4ac Text Channels: **{}**\n\U0001f50a Voice Channels: **{}**".format(len(ctx.guild.text_channels), len(ctx.guild.voice_channels)))
+        embed.add_field(name="Important Info", value="Owner: {}\nVerification Level: **{}**\nGuild ID: **{}**".format(ctx.guild.owner.mention, str(ctx.guild.verification_level).title( ), ctx.guild.id), inline=False)
+        embed.add_field(name="Other Info", value="AFK Channel: **{}**\n AFK Timeout: **{} minute(s)**\nCustom Emojis: **{}**\nRole Count: **{}**\nFilesize Limit - **{}**".format( ctx.guild.afk_channel, str(ctx.guild.afk_timeout / 60), len(ctx.guild.emojis), len(ctx.guild.roles), humanize.naturalsize(ctx.guild.filesize_limit)), inline=False)
+        embed.add_field(name="Server Features", value="{} - Banner\n{}\n{} - Splash Invite\n{} - Animated Icon\n{} - Server Discoverable".format(tragedy.EmojiBool(banner), vanityFeature, tragedy.EmojiBool(splash), tragedy.EmojiBool(animicon), tragedy.EmojiBool(discoverable)))
+        embed.add_field(name="Boost Info", value="Number of Boosts - **{}**\nBooster Role - **{}**\nBoost Level/Tier - **{}**".format( str(ctx.guild.premium_subscription_count), ctx.guild.premium_subscriber_role.mention if ctx.guild.premium_subscriber_role != None else ctx.guild.premium_subscriber_role, ctx.guild.premium_tier))
         await ctx.reply(embed=embed, mention_author=True)
 
     @commands.command(name="emoji", aliases=["ei", "emojinfo"], description="Returns info about specified emoji",
@@ -120,12 +89,12 @@ class Info(commands.Cog, description="Commands that return information"):
                               colour=Color.green(), timestamp=datetime.utcnow())
         embed.set_thumbnail(url=str(emoji.url))
         embed.add_field(name="Basic Info",
-                        value="Emoji Name - **{}**\nEmoji ID - **{}**\nCreated At - **{} ({})**".format(emoji.name,
+                        value="Emoji Name - **{}**\nEmoji ID - **{}**\nCreated At - **{} ({} ago)**".format(emoji.name,
                                                                                                         emoji.id,
                                                                                                         humanize.naturaldate(
-                                                                                                            emoji.created_at),
-                                                                                                        humanize.naturaltime(
-                                                                                                            datetime.now() - emoji.created_at)))
+                                                                                                            emoji.created_at.replace(tzinfo=timezone.utc)),
+                                                                                                        humanize.naturaldelta(
+                                                                                                            datetime.utcnow().replace(tzinfo=timezone.utc) - emoji.created_at.replace(tzinfo=timezone.utc))))
         embed.add_field(name="Guild Info",
                         value="Guild Name - **{}**\nGuild ID - **{}**".format(emoji.guild.name, emoji.guild_id))
         embed.add_field(name="Features",
@@ -142,7 +111,7 @@ class Info(commands.Cog, description="Commands that return information"):
         async with ctx.typing():
             embed = discord.Embed(title=role.name, color=role.color)
             embed.add_field(name="Basic Info",
-                            value="Role Name - **{}**\nRole ID - **{}**\nCreated At - **{} ({})**".format(role.name,
+                            value="Role Name - **{}**\nRole ID - **{}**\nCreated At - **{} ({} ago)**".format(role.name,
                                                                                                           role.id,
                                                                                                           humanize.naturaldate(
                                                                                                               role.created_at),
@@ -443,19 +412,8 @@ class Info(commands.Cog, description="Commands that return information"):
         embed.set_thumbnail(url="https://i.imgur.com/syDydkb.png")
         await ctx.send(embed=embed)
 
-    @commands.command(aliases=['ss'])
-    @commands.is_nsfw()
-    async def screenshot(self, ctx: commands.Context, *, url: str):
-        url = url.strip('<>')
-        if not re.match(discord.utils._URL_REGEX, url):
-            raise commands.BadArgument(
-                'That is not a valid url. Try again with a valid one.')
-        res = await self.aiohttp.get(f'https://image.thum.io/get/{url}')
-        byt = io.BytesIO(await res.read())
-
-        await ctx.send(embed=ImageEmbed.make("Screenshot", FileType.PNG), file=discord.File(byt, filename=f'linktr.ee_incriminating.png'))
-
     @commands.command(description="Finds accounts with specified username on various websites", help="investigo <username>")
+    @commands.cooldown(1, 35, type=BucketType.member)
     async def investigo(self, ctx, *, username: str):
         sanitized = shlex.quote(username)
         with contextlib.suppress(Exception):
@@ -475,7 +433,6 @@ class Info(commands.Cog, description="Commands that return information"):
                     description=list,
                     color=Color.green()
                 ).set_footer(text="username is sanitized dont even try"))
-
 
 def setup(bot):
     bot.add_cog(Info(bot))

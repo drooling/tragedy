@@ -1,9 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import asyncio
+import collections
 import contextlib
+from datetime import timezone
 import pprint
 import random
+import string
 import typing
 
 import bot.utils.utilities as tragedy
@@ -26,21 +29,9 @@ from discord_components.component import Button, ButtonStyle
 class Mod(commands.Cog, description="Commands to moderate your server !"):
     def __init__(self, bot):
         self.bot = bot
-        self.snipe_cache = {}
-        self.edit_cache = {}
-        self.pool = pymysql.connect(
-            host=tragedy.DotenvVar("mysqlServer"),
-            user="root",
-            password=tragedy.DotenvVar("mysqlPassword"),
-            port=3306,
-            database="tragedy",
-            charset='utf8mb4',
-            cursorclass=pymysql.cursors.DictCursor,
-            read_timeout=5,
-            write_timeout=5,
-            connect_timeout=5,
-            autocommit=True
-        )
+        self.snipe_cache = collections.defaultdict(dict)
+        self.edit_cache = collections.defaultdict(dict)
+        self.pool = pymysql.connect(host=tragedy.DotenvVar("mysqlServer"), user="root", password=tragedy.DotenvVar("mysqlPassword"), port=3306, database="tragedy", charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor, read_timeout=5, write_timeout=5, connect_timeout=5, autocommit=True)
         self.mysqlPing.start()
         DiscordComponents(self.bot)
 
@@ -77,17 +68,12 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
             "user": member,
             "user_ping": member.mention,
             "user_name": member.name,
-            "server_name": member.guild.name
+            "server_name": member.guild.name,
+            "join_position": sum(m.joined_at < member.joined_at for m in member.guild.members if m.joined_at is not None)
         }
 
-        formatted: str = str(message)
-
-        for key in variables.keys():
-            try:
-                formatted = formatted.replace(key, variables.get(key), -1)
-            except:
-                pass
-
+        template: str = string.Template(str(message))
+        formatted = template.safe_substitute(**variables)
         return formatted
 
     @commands.Cog.listener()
@@ -125,7 +111,7 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
                 del self.snipe_cache[ctx.channel.id]
                 return await ctx.send(embed=embed, file=await data.attachments[0].to_file())
         embed.set_footer(text='Sniped message sent at {}'.format(
-            time.strftime("%I:%M %p")))
+            time.replace(tzinfo=timezone.utc).strftime("%I:%M %p")))
         del self.snipe_cache[ctx.channel.id]
         await ctx.send(embed=embed)
 
@@ -462,7 +448,7 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
             tragedy.logError(exc)
 
     @commands.guild_only()
-    @commands.has_permissions(manage_messages=True)
+    @commands.has_permissions(manage_guild=True)
     @commands.group(ignore_extra=True, invoke_without_command=True, description="Auto-welcome commands", help="welcome")
     async def welcome(self, ctx):
         with self.pool.cursor() as cursor:
@@ -479,8 +465,22 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
                                   (channel.mention, message), color=Color.green())
             await ctx.send(embed=embed)
 
+    @welcome.command()
+    async def test(self, ctx):
+        with self.pool.cursor() as cursor:
+            cursor.execute(
+                "SELECT channel, message FROM `welcome` WHERE guild=%s", (ctx.guild.id))
+            row: dict = cursor.fetchone()
+            try:
+                channel = row.get("channel")
+                message = row.get("message")
+            except AttributeError:
+                raise WelcomeNotConfigured("Welcome has not been configured")
+            channel = await self.bot.fetch_channel(channel)
+            await channel.send(self.ConvertMessage(ctx.author, message))
+
     @commands.guild_only()
-    @commands.has_permissions(manage_messages=True)
+    @commands.has_permissions(manage_guild=True)
     @welcome.group(ignore_extra=True, invoke_without_command=True, description="Set Auto-welcome variables", help="welcome set <variable>")
     @commands.cooldown(1, 45, BucketType.guild)
     async def set(self, ctx):
@@ -516,14 +516,16 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
                 description="You can use the following variables in your welcome message",
                 color=Color.green()
             )
-            embed.add_field(name="user", value="Member's username#descriminator\nExample: Welcome user ! (Welcome %s !)" % (
+            embed.add_field(name="${user}", value="Example: Welcome ${user} ! (Welcome %s !)" % (
                 ctx.author), inline=False)
-            embed.add_field(name="user_ping", value="Ping member\nExample: Welcome user_ping ! (Welcome %s !)" % (
+            embed.add_field(name="${user_ping}", value="Example: Welcome ${user_ping} ! (Welcome %s !)" % (
                 ctx.author.mention), inline=False)
-            embed.add_field(name="user_name", value="Member's username\nExample: Welcome user_name ! (Welcome %s !)" % (
+            embed.add_field(name="${user_name}", value="Example: Welcome ${user_name} ! (Welcome %s !)" % (
                 ctx.author.name), inline=False)
-            embed.add_field(name="server_name", value="Server's name\nExample: Welcome to server_name ! (Welcome to %s !)" % (
+            embed.add_field(name="${server_name}", value="Example: Welcome to ${server_name} ! (Welcome to %s !)" % (
                 ctx.guild.name), inline=False)
+            embed.add_field(name="${join_postion}", value="Example: You are the ${join_position}th person to join ! (Welcome to %s !)" % (
+                sum(m.joined_at < ctx.author.joined_at for m in ctx.guild.members if m.joined_at is not None)), inline=False)
             return await ctx.send(embed=embed)
         if len(message) > 1849:
             raise BadArgument("Message cannot be over 1850 characters.")
@@ -562,7 +564,7 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
         await ctx.channel.purge(limit=amount, check=check, before=None, bulk=True)
 
     @purge.command(name="all")
-    async def _all(self, ctx):
+    async def _all(self, ctx: commands.Context):
         def check(response):
             return ctx.author == response.user and response.channel == ctx.channel
 
@@ -576,23 +578,29 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
         try:
             interaction = await self.bot.wait_for("button_click", check=check, timeout=15)
             if interaction.component.label == "Yes":
-                await ctx.message.delete()
-                await Confirm.delete()
-                await ctx.channel.purge(bulk=True, limit=9999999999999999999999)
                 try:
-                    await ctx.send(embed=discord.Embed(title="Channel Nuked!",
-                                                       description="Type \"{}help\" for commands.".format(
-                                                           random.choice(tragedy.getServerPrefixes(ctx.guild.id))),
-                                                       color=discord.Color.green()).set_image(
-                        url='https://media.giphy.com/media/HhTXt43pk1I1W/source.gif'), delete_after=5)
-                except Exception as exc:
-                    tragedy.logError(exc)
+                    await Confirm.delete()
+                    position_index = ctx.channel.position
+                    await ctx.channel.delete()
+                    clone = await ctx.channel.clone()
+                    await clone.edit(position=position_index)
+                    try:
+                        await clone.send(embed=discord.Embed(title="Channel Nuked!",
+                                                           description="Type \"{}help\" for commands.".format(
+                                                               random.choice(tragedy.getServerPrefixes(ctx.guild.id))),
+                                                           color=discord.Color.green()).set_image(
+                            url='https://media.giphy.com/media/HhTXt43pk1I1W/source.gif'), delete_after=5)
+                    except Exception as exc:
+                        tragedy.logError(exc)
+                except discord.Forbidden:
+                    raise commands.BotMissingPermissions(["manage_channels"])
             else:
                 await Confirm.delete()
                 await ctx.message.delete()
                 return
         except asyncio.exceptions.TimeoutError:
             await Confirm.edit(content="Took too long !", embed=None, components=[])
+
 
 def setup(bot):
     bot.add_cog(Mod(bot))

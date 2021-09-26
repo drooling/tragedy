@@ -9,7 +9,7 @@ import traceback
 import aiohttp
 import discord
 import pymysql.cursors
-from bot.utils.classes import NotVoter
+from bot.utils.classes import NotGuildOwner, NotVoter
 from discord.ext import commands
 from dotenv import load_dotenv
 
@@ -47,16 +47,27 @@ def EmojiBool(bool: bool):
 
 
 def is_voter_only():
-    async def predicate(ctx):
-        async with topggSession.get("https://top.gg/api/bots/875514281993601055/check?userId=%s" % (str(ctx.author.id))) as response:
-            json = await response.json()
-            print(json)
-            if json["voted"] == 1:
-                response.close()
-                return True
-            else:
-                response.close()
-                raise NotVoter()
+    async def predicate(ctx: commands.Context):
+        if ctx.author.id == 875513626805555232:
+            return True
+        else:
+            async with topggSession.get("https://top.gg/api/bots/875514281993601055/check?userId=%s" % (str(ctx.author.id))) as response:
+               json = await response.json()
+               print(json)
+               if json["voted"] == 1:
+                   response.close()
+                   return True
+               else:
+                   response.close()
+                   raise NotVoter()
+    return commands.check(predicate)
+
+def is_guild_owner():
+    async def predicate(ctx: commands.Context):
+        if ctx.author is ctx.guild.owner:
+            return True
+        else:
+            return NotGuildOwner()
     return commands.check(predicate)
 
 

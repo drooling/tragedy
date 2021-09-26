@@ -18,19 +18,7 @@ from discord.ext.commands.cooldowns import BucketType
 class Economy(commands.Cog, description="Economy system lol"):
     def __init__(self, bot: commands.Bot):
         self.bot = bot
-        self.pool = pymysql.connect(
-            host=tragedy.DotenvVar("mysqlServer"),
-            user="root",
-            password=tragedy.DotenvVar("mysqlPassword"),
-            port=3306,
-            database="tragedy",
-            charset='utf8mb4',
-            cursorclass=pymysql.cursors.DictCursor,
-            read_timeout=5,
-            write_timeout=5,
-            connect_timeout=5,
-            autocommit=True
-        )
+        self.pool = pymysql.connect(host=tragedy.DotenvVar("mysqlServer"), user="root", password=tragedy.DotenvVar("mysqlPassword"), port=3306, database="tragedy", charset='utf8mb4', cursorclass=pymysql.cursors.DictCursor, read_timeout=5, write_timeout=5, connect_timeout=5, autocommit=True)
         self.mysqlPing.start()
 
         self.shop = {
@@ -89,7 +77,7 @@ class Economy(commands.Cog, description="Economy system lol"):
         item = item.casefold()
         price: int = (self.shop.get(item).price * amount)
         balance: int = await self.get_user_balance(guild_id, user_id)
-        count: int = (await self.get_user_items(guild_id, user_id).get(item)) or 0
+        count: int = (await self.get_user_items(guild_id, user_id)).get(item) or 0
 
         if price < balance:
             with self.pool.cursor() as cursor:

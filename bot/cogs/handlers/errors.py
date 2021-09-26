@@ -3,7 +3,7 @@ import difflib
 
 import bot.utils.utilities as tragedy
 import discord
-from bot.utils.classes import NotVoter, WelcomeNotConfigured
+from bot.utils.classes import NotGuildOwner, NotVoter, WelcomeNotConfigured
 from discord.ext import commands
 from discord.ext.commands import *
 
@@ -61,6 +61,9 @@ class Errors(commands.Cog, name="on command error"):
 			elif isinstance(error, WelcomeNotConfigured):
 				embed = discord.Embed(title="Oops !", description="The `auto-welcome` feature is not fully configured yet !\n Use `welcome setup` to configure it.", color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
+			elif isinstance(error, NotGuildOwner):
+				embed = discord.Embed(title="Oops !", description="That command can only be used by the server owner.", color=discord.Color.red())
+				await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, commands.BadArgument):
 				embed = discord.Embed(title="Oops !", description="{} you silly goose".format(
 				   error.args[0]), color=discord.Color.red())
@@ -73,7 +76,6 @@ class Errors(commands.Cog, name="on command error"):
 			else:
 				with contextlib.suppress(Exception):
 					await tragedy.report(self, ctx, error)
-
 
 def setup(bot):
 	bot.add_cog(Errors(bot))
