@@ -3,7 +3,7 @@ import difflib
 
 import bot.utils.utilities as tragedy
 import discord
-from bot.utils.classes import NotGuildOwner, NotVoter, WelcomeNotConfigured
+from bot.utils.classes import AntiNukeNotConfigured, NotGuildOwner, NotVoter, WelcomeNotConfigured
 from discord.ext import commands
 from discord.ext.commands import *
 
@@ -53,16 +53,19 @@ class Errors(commands.Cog, name="on command error"):
 			elif isinstance(error, NotVoter):
 				embed = discord.Embed(title="Oops !", description="That command is only for voters you silly goose !\n To vote for tragedy and get access to that command click [here!](https://top.gg/bot/875514281993601055/vote)", color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
+			elif isinstance(error, WelcomeNotConfigured):
+				embed = discord.Embed(title="Oops !", description="The `auto-welcome` feature is not fully configured yet !\n Use `welcome setup` to configure it.", color=discord.Color.red())
+				await ctx.reply(embed=embed, mention_author=True)
+			elif isinstance(error, AntiNukeNotConfigured):
+				embed = discord.Embed(title="Oops !", description="The `anti-nuke` feature is not fully configured yet !\n Use `antinuke enable` to configure it.", color=discord.Color.red())
+				await ctx.reply(embed=embed, mention_author=True)
+			elif isinstance(error, NotGuildOwner):
+				embed = discord.Embed(title="Oops !", description="That command can only be used by the server owner.", color=discord.Color.red())
+				await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, CheckFailure):
 				embed = discord.Embed(title="Oops !", description="{} you silly goose".format(
 					error.args[0]
 				), color=discord.Color.red())
-				await ctx.reply(embed=embed, mention_author=True)
-			elif isinstance(error, WelcomeNotConfigured):
-				embed = discord.Embed(title="Oops !", description="The `auto-welcome` feature is not fully configured yet !\n Use `welcome setup` to configure it.", color=discord.Color.red())
-				await ctx.reply(embed=embed, mention_author=True)
-			elif isinstance(error, NotGuildOwner):
-				embed = discord.Embed(title="Oops !", description="That command can only be used by the server owner.", color=discord.Color.red())
 				await ctx.reply(embed=embed, mention_author=True)
 			elif isinstance(error, commands.BadArgument):
 				embed = discord.Embed(title="Oops !", description="{} you silly goose".format(

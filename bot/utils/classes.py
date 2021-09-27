@@ -13,6 +13,9 @@ class NotVoter(commands.CheckFailure):
 class WelcomeNotConfigured(commands.CheckFailure):
     pass
 
+class AntiNukeNotConfigured(commands.CheckFailure):
+    pass
+
 class NotGuildOwner(commands.CheckFailure):
     pass
 
