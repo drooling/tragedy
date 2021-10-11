@@ -45,7 +45,7 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 	async def mysqlPing(self):
 		connected = bool(self.pool.open)
 		pprint.pprint(
-			"Testing connection to mysql database () --> {}".format(str(connected).upper()))
+			"Testing connection to mysql database () --> {} IN {}".format(str(connected).upper(), __file__))
 		if connected is False:
 			self.pool.ping(reconnect=True)
 			pprint.pprint("Reconnecting to database () --> SUCCESS")
@@ -121,14 +121,16 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 				cursor.execute("INSERT INTO `prefix` (guild) VALUES (%s)", (guild.id))
 				cursor.execute("INSERT INTO `welcome` (guild) VALUES (%s)", (guild.id))
 				cursor.execute("INSERT INTO `auto-mod` (guild) VALUES (%s)", (guild.id))
-			self.pool.commit()
-			print("[Logging] Added {} to prefix database.".format(guild.id))
-			print("[Logging] Added {} to welcome database.".format(guild.id))
+				cursor.execute("INSERT INTO `anti-nuke` (guild) VALUES (%s)", (guild.id))
+			pprint.pprint("[Logging] Added {} to prefix database.".format(guild.id))
+			pprint.pprint("[Logging] Added {} to welcome database.".format(guild.id))
+			pprint.pprint("[Logging] Added {} to auto-mod database.".format(guild.id))
+			pprint.pprint("[Logging] Added {} to anti-nuke database.".format(guild.id))
 		except Exception as exc:
 			tragedy.logError(exc)
 		try:
 			embed = discord.Embed(title="Hello !",
-								  description="My name is {}, thank you for inviting me to your server ! To view my commands type \"xv help\" in the chat.".format(
+								  description="My name is {}, thank you for inviting me to your server ! To view my commands type `xv help` in the chat.".format(
 									  self.bot.user.name), color=Color.green())
 			await guild.owner.send(embed=embed)
 		except:

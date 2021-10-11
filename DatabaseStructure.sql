@@ -66,18 +66,17 @@ CREATE TABLE `welcome` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
--- Table structure for table `economy`
+-- Table structure for table `auto-role`
 --
 
-DROP TABLE IF EXISTS `economy`;
+DROP TABLE IF EXISTS `auto-role`;
 
 
-CREATE TABLE `economy` (
+CREATE TABLE `auto-role` (
   `guild` varchar(18) NOT NULL,
-  `user` varchar(18) NOT NULL,
-  `balance` INT NOT NULL DEFAULT 0,
-  `items` JSON DEFAULT '{}'
-) ENGINE = InnoDB DEFAULT CHARSET = utf8mb4;
+  `role` BIGINT(18) NOT NULL,
+  UNIQUE KEY `role` (`role`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
 -- Table structure for table `auto-mod`

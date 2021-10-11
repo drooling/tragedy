@@ -31,7 +31,7 @@ class Economy(commands.Cog, description="Economy system lol"):
     async def mysqlPing(self):
         connected = bool(self.pool.open)
         pprint.pprint(
-            "Testing connection to mysql database () --> {}".format(str(connected).upper()))
+            "Testing connection to mysql database () --> {} IN {}".format(str(connected).upper(), __file__))
         if connected is False:
             self.pool.ping(reconnect=True)
             pprint.pprint("Reconnecting to database () --> SUCCESS")

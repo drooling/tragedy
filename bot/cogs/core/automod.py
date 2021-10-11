@@ -79,7 +79,7 @@ class Automod(commands.Cog, description="Automatic Moderation"):
 	async def mysqlPing(self):
 		connected = bool(self.pool.open)
 		pprint.pprint(
-			"Testing connection to mysql database () --> {}".format(str(connected).upper()))
+			"Testing connection to mysql database () --> {} IN {}".format(str(connected).upper(), __file__))
 		if connected is False:
 			self.pool.ping(reconnect=True)
 			pprint.pprint("Reconnecting to database () --> SUCCESS")
@@ -129,9 +129,9 @@ class Automod(commands.Cog, description="Automatic Moderation"):
 			except KeyError:
 				self.spam_count[message.author.id] = 0
 				self.spam_count[message.author.id] += 1
-			if self.spam_count[message.author.id] >= 5:
+			if self.spam_count[message.author.id] >= 3:
 				del self.spam_count[message.author.id]
-				await message.author.ban(reason="Tragedy Auto-Mod | User invoked rate limit 5+ times in 5 minutes")
+				await message.author.ban(reason="Tragedy Auto-Mod | User invoked rate limit 3+ times in 5 minutes")
 				return await message.channel.send(embed=discord.Embed(
 					title="Tragedy Auto-Mod",
 					color=Color.red(),
@@ -180,6 +180,7 @@ class Automod(commands.Cog, description="Automatic Moderation"):
 		))
 
 	@automod.group(ignore_extra=True, invoke_without_command=True)
+	@commands.has_permissions(manage_guild=True)
 	async def set(self, ctx):
 		await ctx.send(embed=discord.Embed(
 			title="Tragedy Auto-Mod",
@@ -188,6 +189,7 @@ class Automod(commands.Cog, description="Automatic Moderation"):
 		))
 
 	@set.command()
+	@commands.has_permissions(manage_guild=True)
 	async def invite(self, ctx, state: int):
 		if state not in (0, 1):
 			return await ctx.send(embed=discord.Embed(
@@ -197,6 +199,7 @@ class Automod(commands.Cog, description="Automatic Moderation"):
 			))
 		with self.pool.cursor() as cursor:
 			cursor.execute("UPDATE `auto-mod` SET invite_filter=%s WHERE guild=%s", (state, str(ctx.guild.id)))
+		del self.config_cache[ctx.guild.id]
 		await ctx.send(embed=discord.Embed(
 				title="Tragedy Auto-Mod",
 				color=Color.green(),
@@ -204,6 +207,7 @@ class Automod(commands.Cog, description="Automatic Moderation"):
 			))
 
 	@set.command()
+	@commands.has_permissions(manage_guild=True)
 	async def profanity(self, ctx, state: int):
 		if state not in (0, 1):
 			return await ctx.send(embed=discord.Embed(
@@ -213,6 +217,7 @@ class Automod(commands.Cog, description="Automatic Moderation"):
 			))
 		with self.pool.cursor() as cursor:
 			cursor.execute("UPDATE `auto-mod` SET profanity_filter=%s WHERE guild=%s", (state, str(ctx.guild.id)))
+		del self.config_cache[ctx.guild.id]
 		await ctx.send(embed=discord.Embed(
 				title="Tragedy Auto-Mod",
 				color=Color.green(),
@@ -220,6 +225,7 @@ class Automod(commands.Cog, description="Automatic Moderation"):
 			))
 
 	@set.command()
+	@commands.has_permissions(manage_guild=True)
 	async def spam(self, ctx, state: int):
 		if state not in (0, 1):
 			return await ctx.send(embed=discord.Embed(
@@ -229,6 +235,7 @@ class Automod(commands.Cog, description="Automatic Moderation"):
 			))
 		with self.pool.cursor() as cursor:
 			cursor.execute("UPDATE `auto-mod` SET spam_filter=%s WHERE guild=%s", (state, str(ctx.guild.id)))
+		del self.config_cache[ctx.guild.id]
 		await ctx.send(embed=discord.Embed(
 				title="Tragedy Auto-Mod",
 				color=Color.green(),
@@ -236,6 +243,7 @@ class Automod(commands.Cog, description="Automatic Moderation"):
 			))
 
 	@set.group(ignore_extra=True, invoke_without_command=True)
+	@commands.has_permissions(manage_guild=True)
 	async def mention(self, ctx, state: int):
 		if state not in (0, 1):
 			return await ctx.send(embed=discord.Embed(
@@ -245,6 +253,7 @@ class Automod(commands.Cog, description="Automatic Moderation"):
 			))
 		with self.pool.cursor() as cursor:
 			cursor.execute("UPDATE `auto-mod` SET mention_filter=%s WHERE guild=%s", (state, str(ctx.guild.id)))
+		del self.config_cache[ctx.guild.id]
 		await ctx.send(embed=discord.Embed(
 				title="Tragedy Auto-Mod",
 				color=Color.green(),
@@ -252,6 +261,7 @@ class Automod(commands.Cog, description="Automatic Moderation"):
 			))
 
 	@mention.command()
+	@commands.has_permissions(manage_guild=True)
 	async def max(self, ctx, max: int):
 		if max < 3:
 			return await ctx.send(embed=discord.Embed(
@@ -261,6 +271,7 @@ class Automod(commands.Cog, description="Automatic Moderation"):
 			))
 		with self.pool.cursor() as cursor:
 			cursor.execute("UPDATE `auto-mod` SET mention_length=%s WHERE guild=%s", (max, str(ctx.guild.id)))
+		del self.config_cache[ctx.guild.id]
 		await ctx.send(embed=discord.Embed(
 				title="Tragedy Auto-Mod",
 				color=Color.green(),

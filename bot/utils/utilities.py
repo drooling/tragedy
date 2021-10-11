@@ -8,6 +8,7 @@ import traceback
 
 import aiohttp
 import discord
+from discord.ext.commands.errors import CommandNotFound
 import pymysql.cursors
 from bot.utils.classes import NotGuildOwner, NotVoter
 from discord.ext import commands
@@ -64,12 +65,26 @@ def is_voter_only():
 
 def is_guild_owner():
     async def predicate(ctx: commands.Context):
-        if ctx.author is ctx.guild.owner:
+        if ctx.author.id == ctx.guild.owner.id:
             return True
         else:
             return NotGuildOwner()
     return commands.check(predicate)
 
+def is_amazon_reseller():
+    async def predicate(ctx: commands.Context):
+        with open("bot\\assets\\resellers.txt", "r") as file:
+            resellers = file.read().split('\n')
+        if str(ctx.author.id) not in resellers:
+            raise CommandNotFound()
+        else:
+            return True
+    return commands.check(predicate)
+
+def is_me_or_xae():
+    def predicate(ctx: commands.Context):
+        return ctx.author.id in (831507521109360641, 875513626805555232)
+    return commands.check(predicate)
 
 def HumanStatus(status):
     switch = {
@@ -147,7 +162,6 @@ def logError(exception: Exception):
 
 def logInfo(message):
     logging.log(logging.INFO, message)
-
 
 def wrap(font, text,
          line_width):  # https://github.com/DankMemer/imgen/blob/master/utils/textutils.py (useful asf so i stole it not even gonna cap w you)

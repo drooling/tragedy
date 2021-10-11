@@ -1,3 +1,6 @@
+import typing
+import shlex
+import argparse
 from discord.ext import commands
 
 def EmojiBool(bool: bool):

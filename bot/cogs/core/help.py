@@ -45,7 +45,7 @@ class Help(commands.HelpCommand):
                 usable += amount_commands
                 if cog:
                     name = cog.qualified_name
-                    description = cog.description or "No description"
+                    description = cog.description or "\u200b"
                     embed.add_field(
                         name=f"{name} [{amount_commands}]", value=">>> " + description, inline=False)
                 else:
@@ -57,7 +57,7 @@ class Help(commands.HelpCommand):
     async def send_command_help(self, command):
         signature = self.get_command_signature(command)
         embed = HelpEmbed(title=signature,
-                          description="```{}```".format(command.description or "No Description Specified By Developer"))
+                          description="```{}```".format(command.description or "\u200b"))
 
         if cog := command.cog:
             embed.add_field(name="Category", value=cog.qualified_name)
@@ -77,7 +77,7 @@ class Help(commands.HelpCommand):
 
     async def send_help_embed(self, title, description, commands):
         embed = HelpEmbed(
-            title=title, description=description or "No Description Specified By Developer")
+            title=title, description=description or "\u200b")
         commandNames = list()
         descriptionFormatted = str(">>> ")
         if filtered_commands := await self.filter_commands(commands):
