@@ -474,9 +474,8 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
 
 	@commands.guild_only()
 	@commands.has_permissions(manage_guild=True)
-	@commands.group(ignore_extra=True, invoke_without_command=True)
+	@welcome.group(ignore_extra=True, invoke_without_command=True)
 	async def setup(self, ctx: commands.Context):
-
 		with self.pool.cursor() as cursor:
 			cursor.execute("INSERT INTO `welcome` (guild) VALUES (%s)", (ctx.guild.id))
 
@@ -668,10 +667,12 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
 		async def filter(member: discord.Member):
 			if member.bot:
 				return
-			elif not member.avatar:
-				return sus.append({"nigga": (member, True)})
-			elif (member.created_at.date() - datetime.today().date()).days > 30:
-				return sus.append({"nigga": (member, False)})
+			if not member.avatar:
+				avatar = True
+			else:
+				avatar = False
+			if (member.created_at.date() - datetime.today().date()).days > 30:
+				return sus.append({"nigga": (member, avatar)})
 			else:
 				return
 

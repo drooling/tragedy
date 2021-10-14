@@ -85,6 +85,7 @@ class Help(commands.HelpCommand):
                 commandNames.append(command.name)
         for command in commandNames:
             descriptionFormatted += '`{}` '.format(command)
+        descriptionFormatted = descriptionFormatted if descriptionFormatted != ">>> " else "Unavailable."
         embed.add_field(name="\u200b", value=descriptionFormatted)
         await self.send(embed=embed)
 

@@ -65,7 +65,7 @@ class AntiNuke(commands.Cog):
 				cursor.execute("SELECT `self_bot`, `Punishment` FROM `anti-nuke` WHERE guild=%s", (guild.id))
 				row = cursor.fetchone()
 				return (self.convert_to_bool(row.get("self_bot")), self.convert_to_action(row.get('Punishment')))
-			except Exception:
+			except:
 				raise AntiNukeNotConfigured()
 
 	async def report_to_owner(self, guild: discord.Guild, infected: typing.Union[discord.User, discord.Member], sickness: AuditLogAction):
@@ -158,7 +158,7 @@ class AntiNuke(commands.Cog):
 			await guild.unban(user, reason="tragedy Anti-Nuke | Banned by Non-Whitelisted User")
 			invite: discord.Invite = await random.choice(guild.text_channels).create_invite(max_uses=1, unique=True, reason="tragedy Anti-Nuke | Attempt To Re-Invite User That Was Banned By Possible Nuke")
 			with contextlib.suppress(Exception):
-				await user.send(content="Invite Back To %s - %s\nSorry for inconvenience you were mistakenly banned." % (guild.name, invite.url))
+				await user.send(content="Invite Back To %s - %s\nSorry for the inconvenience you were mistakenly banned." % (guild.name, invite.url))
 
 	@commands.Cog.listener()
 	async def on_member_remove(self, user: discord.Member):
@@ -327,7 +327,8 @@ class AntiNuke(commands.Cog):
 			raise tragedy.NotGuildOwner()
 		with self.pool.cursor() as cursor:
 			cursor.execute("DELETE FROM `anti-nuke` WHERE guild=%s", (ctx.guild.id))
-		del self.whitelist_cache[ctx.guild.id]
+		with contextlib.suppress(KeyError):
+			del self.whitelist_cache[ctx.guild.id]
 		await ctx.reply("tragedy Anti-Nuke has been disabled.", delete_after=5)
 
 	@antinuke.command()
@@ -341,7 +342,9 @@ class AntiNuke(commands.Cog):
 				cursor.execute("UPDATE `anti-nuke` SET Punishment=%s WHERE guild=%s", (1, ctx.guild.id))
 			else:
 				return await ctx.send("The Punishment options are `ban` or `kick` only.", delete_after=5)
-			await ctx.reply("Punishment has been changed.", delete_after=5)
+		with contextlib.suppress(KeyError):
+			del self.whitelist_cache[ctx.guild.id]
+		await ctx.reply("Punishment has been changed.", delete_after=5)
 
 	@antinuke.command()
 	async def selfbot(self, ctx: commands.Context, *, enabled: str):
@@ -369,19 +372,21 @@ class AntiNuke(commands.Cog):
 		))
 
 	@whitelist.command()
-	async def add(self, ctx: commands.Context, member: MemberConverter):
+	async def add(self, ctx: commands.Context, members: commands.Greedy[MemberConverter]):
 		if ctx.author.id != ctx.guild.owner.id:
 			raise tragedy.NotGuildOwner()
-		current_whitelist = self.get_whitelist(ctx.guild)
-		if member.id in current_whitelist:
-			return await ctx.reply("That user is already whitelisted !", delete_after=5)
-		with self.pool.cursor() as cursor:
-			cursor.execute("INSERT IGNORE INTO `anti-nuke-whitelist` (guild, id) VALUES (%s, %s)", (ctx.guild.id, member.id))
-		del self.whitelist_cache[ctx.guild.id]
-		await ctx.reply("%s has been whitelisted." % (member.mention), delete_after=5)
+		for member in members:
+			current_whitelist = self.get_whitelist(ctx.guild)
+			if member.id in current_whitelist:
+				return await ctx.reply("One of those users is already whitelisted !", delete_after=5)
+			with self.pool.cursor() as cursor:
+				cursor.execute("INSERT IGNORE INTO `anti-nuke-whitelist` (guild, id) VALUES (%s, %s)", (ctx.guild.id, member.id))
+			with contextlib.suppress(KeyError):
+				del self.whitelist_cache[ctx.guild.id]
+			await ctx.reply("%s has been whitelisted." % (member.mention), delete_after=5)
 
 	@whitelist.command()
-	async def remove(self, ctx: commands.Context, member: MemberConverter):
+	async def remove(self, ctx: commands.Context, member: commands.Greedy[MemberConverter]):
 		if ctx.author.id != ctx.guild.owner.id:
 			raise tragedy.NotGuildOwner()
 		current_whitelist = self.get_whitelist(ctx.guild)
@@ -389,7 +394,8 @@ class AntiNuke(commands.Cog):
 			return await ctx.reply("That user is not whitelisted.", delete_after=5)
 		with self.pool.cursor() as cursor:
 			cursor.execute("DELETE FROM `anti-nuke-whitelist` WHERE guild=%s AND id=%s", (ctx.guild.id, member.id))
-		del self.whitelist_cache[ctx.guild.id]
+		with contextlib.suppress(KeyError):
+			del self.whitelist_cache[ctx.guild.id]
 		await ctx.reply("%s has been removed from whitelist." % (member.mention), delete_after=5)
 
 def setup(bot):

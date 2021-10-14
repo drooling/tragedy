@@ -42,18 +42,6 @@ class Fun(commands.Cog, description="Fun commands to make discord just a bit bet
             except:
                 pass
 
-    @commands.command(description="Finds synonym(s) for the specified word", help="synonym <word>")
-    @commands.cooldown(1, 5, type=BucketType.member)
-    async def synonym(self, ctx: commands.Context, *, word: str):
-        async with self.aiohttp.get("https://word-simi.herokuapp.com/api/v1/most_similar/{}?count=5".format(word)) as x:
-            parse = await x.json()
-            embed = discord.Embed(title="Synonyms", description="Synonyms for the word \"{}\"".format(word),
-                                  color=Color.green())
-            for _index in range(len(parse["result"])):
-                embed.add_field(
-                    name='\u200b', value="**{}**".format(parse["result"][_index]["word"]), inline=False)
-            await ctx.send(embed=embed)
-
     @commands.command(description="Shortens specified url with 3 different url shorteners", help="shorten <url>")
     @commands.cooldown(1, 5, type=BucketType.member)
     async def shorten(self, ctx: commands.Context, *, url: str):
