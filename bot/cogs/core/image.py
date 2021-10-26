@@ -24,7 +24,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
     @commands.cooldown(1, 5, BucketType.member)
     async def invert(self, ctx, member: commands.MemberConverter = None):
         member = ctx.author if not member else member
-        avatar = await member.avatar_url_as(format='png', size=1024).read()
+        avatar = await member.display_avatar.read()
         with io.BytesIO(avatar) as buffer:
             image = Image.open(buffer).convert("RGB")
             inverted = ImageOps.invert(image)
@@ -38,7 +38,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
     @commands.cooldown(1, 5, BucketType.member)
     async def sketch(self, ctx, member: commands.MemberConverter = None):
         member = ctx.author if not member else member
-        avatar = await member.avatar_url_as(format='png', size=1024).read()
+        avatar = await member.display_avatar.read()
         with io.BytesIO(avatar) as buffer:
             bytesForCV2 = numpy.asarray(
                 bytearray(buffer.read()), dtype=numpy.uint8)
@@ -58,7 +58,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
     @commands.cooldown(1, 5, BucketType.member)
     async def oil(self, ctx, member: commands.MemberConverter = None):
         member = ctx.author if not member else member
-        avatar = await member.avatar_url_as(format='png', size=1024).read()
+        avatar = await member.display_avatar.read()
         with io.BytesIO(avatar) as buffer:
             bytesForCV2 = numpy.asarray(
                 bytearray(buffer.read()), dtype=numpy.uint8)
@@ -76,7 +76,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
     @commands.cooldown(1, 5, BucketType.member)
     async def blur(self, ctx, member: commands.MemberConverter = None):
         member = ctx.author if not member else member
-        avatar = await member.avatar_url_as(format='png', size=1024).read()
+        avatar = await member.display_avatar.read()
         with io.BytesIO(avatar) as buffer:
             image = Image.open(buffer).convert("RGB")
             blurred = image.filter(ImageFilter.GaussianBlur)
@@ -90,7 +90,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
     @commands.cooldown(1, 5, BucketType.member)
     async def posterize(self, ctx, member: commands.MemberConverter = None):
         member = ctx.author if not member else member
-        avatar = await member.avatar_url_as(format='png', size=1024).read()
+        avatar = await member.display_avatar.read()
         with io.BytesIO(avatar) as buffer:
             image = Image.open(buffer).convert("RGB")
             posterized = ImageOps.posterize(image, 2)
@@ -104,7 +104,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
     @commands.cooldown(1, 5, BucketType.member)
     async def solarize(self, ctx, member: commands.MemberConverter = None):
         member = ctx.author if not member else member
-        avatar = await member.avatar_url_as(format='png', size=1024).read()
+        avatar = await member.display_avatar.read()
         with io.BytesIO(avatar) as buffer:
             image = Image.open(buffer).convert("RGB")
             solarize = ImageOps.solarize(image, 255)
@@ -118,7 +118,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
     @commands.cooldown(1, 5, BucketType.member)
     async def flip(self, ctx, member: commands.MemberConverter = None):
         member = ctx.author if not member else member
-        avatar = await member.avatar_url_as(format='png', size=1024).read()
+        avatar = await member.display_avatar.read()
         with io.BytesIO(avatar) as buffer:
             image = Image.open(buffer).convert("RGB")
             flip = ImageOps.flip(image)
@@ -132,7 +132,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
     @commands.cooldown(1, 5, BucketType.member)
     async def mirror(self, ctx, member: commands.MemberConverter = None):
         member = ctx.author if not member else member
-        avatar = await member.avatar_url_as(format='png', size=1024).read()
+        avatar = await member.display_avatar.read()
         with io.BytesIO(avatar) as buffer:
             image = Image.open(buffer).convert("RGB")
             mirror = ImageOps.mirror(image)
@@ -147,7 +147,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
     @commands.cooldown(1, 5, BucketType.member)
     async def grayscale(self, ctx, member: commands.MemberConverter = None):
         member = ctx.author if not member else member
-        avatar = await member.avatar_url_as(format='png', size=1024).read()
+        avatar = await member.display_avatar.read()
         with io.BytesIO(avatar) as buffer:
             image = Image.open(buffer).convert("RGB")
             grayscale = ImageOps.grayscale(image)
@@ -173,14 +173,14 @@ class Images(commands.Cog, description="Commands that manipulate images"):
     async def fry(self, ctx, user: commands.MemberConverter = None):
         if user is None:
             async with self.aiohttp.get("https://nekobot.xyz/api/imagegen?type=deepfry&image={}".format(
-                    str(ctx.author.avatar_url_as(format="png")))) as r:
+                    str(ctx.author.display_avatar.url))) as r:
                 res = await r.json()
                 embed = discord.Embed(title="Deep Fried {} !".format(ctx.author.name),
                                       color=discord.Color.green()).set_image(url=res['message'])
                 await ctx.reply(embed=embed, mention_author=True)
         else:
             async with self.aiohttp.get("https://nekobot.xyz/api/imagegen?type=deepfry&image={}".format(
-                    str(user.avatar_url_as(format="png")))) as r:
+                    str(user.display_avatar.url))) as r:
                 res = await r.json()
                 embed = discord.Embed(title="Deep Fried {} !".format(user.display_name),
                                       color=discord.Color.green()).set_image(url=res['message'])
@@ -208,7 +208,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
     async def _triggered(self, ctx: commands.Context, member: commands.MemberConverter = None):
         async with ctx.typing():
             member = ctx.author if not member else member
-            avatar = await member.avatar_url_as(format='png', size=1024).read()
+            avatar = await member.display_avatar.read()
             with io.BytesIO(avatar) as buff:
                 avatar = Image.open(buff)
                 triggered = Image.open(self.assets + "pillow/triggered.jpg")
@@ -225,7 +225,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
     async def _gay(self, ctx: commands.Context, member: commands.MemberConverter = None):
         async with ctx.typing():
             member = ctx.author if not member else member
-            avatar = await member.avatar_url_as(format='png', size=1024).read()
+            avatar = await member.display_avatar.read()
             with io.BytesIO(avatar) as buff:
                 avatar = Image.open(buff).resize((480, 480))
                 gay = Image.open(
@@ -242,7 +242,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
     async def _jail(self, ctx: commands.Context, member: commands.MemberConverter = None):
         async with ctx.typing():
             member = ctx.author if not member else member
-            avatar = await member.avatar_url_as(format='png', size=1024).read()
+            avatar = await member.display_avatar.read()
             with io.BytesIO(avatar) as buff:
                 avatar = Image.open(buff).resize((400, 400))
                 bars = Image.open(
@@ -258,7 +258,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
     async def _communist(self, ctx: commands.Context, member: commands.MemberConverter = None):
         async with ctx.typing():
             member = ctx.author if not member else member
-            avatar = await member.avatar_url_as(format='png', size=1024).read()
+            avatar = await member.display_avatar.read()
             with io.BytesIO(avatar) as buff:
                 avatar = Image.open(buff).resize((1000, 1000))
                 flag = Image.open(
@@ -279,7 +279,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
         else:
             async with ctx.typing():
                 member = ctx.author if not member else member
-                avatar = await member.avatar_url_as(format='png', size=1024).read()
+                avatar = await member.display_avatar.read()
                 with io.BytesIO(avatar) as buff:
                     avatar = Image.open(buff).resize((245, 240))
                     pan = Image.open(self.assets + "pillow/pan.jpg")
@@ -300,7 +300,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
     async def _presentation(self, ctx: commands.Context, *, message: str, member: commands.MemberConverter = None):
         async with ctx.typing():
             member = ctx.author if not member else member
-            avatar = await member.avatar_url_as(format='png', size=1024).read()
+            avatar = await member.display_avatar.read()
             with io.BytesIO(avatar) as buff:
                 avatar = Image.open(buff).resize((85, 75))
                 presentation = Image.open(
@@ -320,7 +320,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
     async def _warned(self, ctx: commands.Context, member: commands.MemberConverter = None):
         async with ctx.typing():
             member = ctx.author if not member else member
-            avatar = await member.avatar_url_as(format='png', size=1024).read()
+            avatar = await member.display_avatar.read()
             with io.BytesIO(avatar) as buff:
                 avatar = Image.open(buff).resize((75, 70))
                 warned = Image.open(self.assets + "pillow/warn.jpg")
@@ -338,8 +338,8 @@ class Images(commands.Cog, description="Commands that manipulate images"):
             if await self.bot.is_owner(member):
                 await ctx.send("no.")
                 return
-            GrievanceAvatar = await member.avatar_url_as(format='png', size=1024).read()
-            avatar = await ctx.author.avatar_url_as(format='png', size=1024).read()
+            GrievanceAvatar = await member.display_avatar.read()
+            avatar = await ctx.author.display_avatar.read()
             with io.BytesIO(GrievanceAvatar) as buff:
                 Grief = Image.open(buff).resize((90, 90))
                 avatar = Image.open(io.BytesIO(avatar)).resize((135, 120))
@@ -374,8 +374,8 @@ class Images(commands.Cog, description="Commands that manipulate images"):
                      lover2: commands.MemberConverter = None):
         async with ctx.typing():
             lover2 = ctx.author if not lover2 else lover2
-            lover1 = await lover1.avatar_url_as(format='png', size=1024).read()
-            lover2 = await lover2.avatar_url_as(format='png', size=1024).read()
+            lover1 = await lover1.display_avatar.read()
+            lover2 = await lover2.display_avatar.read()
             with io.BytesIO(lover1) as buff:
                 lover1 = Image.open(buff).resize((140, 145))
                 lover2 = Image.open(io.BytesIO(lover2)).resize((145, 145))
@@ -393,7 +393,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
     async def _fuck(self, ctx: commands.Context, user: commands.MemberConverter):
         async with ctx.typing():
             slut = user
-            slutAvBytes = await slut.avatar_url_as(format="png", size=1024).read()
+            slutAvBytes = await slut.display_avatar.url_as(format="png", size=1024).read()
             with io.BytesIO(slutAvBytes) as slutAvIO:
                 rail = Image.open(self.assets + "pillow/rail.gif")
                 slutAv = Image.open(slutAvIO).resize((80, 85))
@@ -414,7 +414,7 @@ class Images(commands.Cog, description="Commands that manipulate images"):
     async def _baby(self, ctx: commands.Context, user: commands.MemberConverter):
         async with ctx.typing():
             baby = user
-            babyAvBytes = await baby.avatar_url_as(format="png", size=1024).read()
+            babyAvBytes = await baby.display_avatar.url_as(format="png", size=1024).read()
             with io.BytesIO(babyAvBytes) as babyAvIO:
                 bonk = Image.open(self.assets + "pillow/bonk.gif")
                 babyAv = Image.open(babyAvIO).resize((140, 170))

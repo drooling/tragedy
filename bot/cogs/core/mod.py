@@ -14,6 +14,7 @@ from discord.embeds import Embed
 from bot.utils.paginator import Paginator
 
 import bot.utils.utilities as tragedy
+import bot.utils.classes as classes
 import discord
 import humanize
 import nanoid
@@ -119,9 +120,9 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
 			return await ctx.send('Nothing to snipe.')
 		data: discord.Message = self.snipe_cache[ctx.channel.id]
 		time = data.created_at
-		embed = discord.Embed(color=Color.green(), timstamp=time)
+		embed = discord.Embed(color=Color.green(), timestamp=time)
 		embed.set_author(name=data.author.display_name,
-						 icon_url=data.author.avatar_url)
+						 icon_url=data.author.display_avatar.url)
 		if data.content:
 			embed.description = data.content
 		if data.attachments:
@@ -150,7 +151,7 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
 		embed = discord.Embed(color=Color.green(), timestamp=edited_at)
 		embed.set_author(name=after.author,
 						 url=after.jump_url,
-						 icon_url=after.author.avatar_url)
+						 icon_url=after.author.display_avatar.url)
 		if after.content:
 			embed.add_field(
 				name="Before", value=before.clean_content, inline=False)
@@ -165,7 +166,7 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
 	@commands.has_permissions(kick_members=True)
 	@commands.bot_has_guild_permissions(kick_members=True)
 	@commands.cooldown(1, 5, type=BucketType.member)
-	async def kick(self, ctx, members: commands.Greedy[commands.MemberConverter], *, reason: typing.Optional[str]):
+	async def kick(self, ctx, members: commands.Greedy[classes.MemberConverter], *, reason: typing.Optional[str]):
 		reason = reason or "an unspecified reason"
 		success: list = list()
 		failure: list = list()
@@ -187,7 +188,7 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
 	@commands.has_permissions(ban_members=True)
 	@commands.bot_has_guild_permissions(ban_members=True)
 	@commands.cooldown(1, 5, type=BucketType.member)
-	async def ban(self, ctx, members: commands.Greedy[commands.MemberConverter], *, reason: typing.Optional[str]):
+	async def ban(self, ctx, members: commands.Greedy[classes.MemberConverter], *, reason: typing.Optional[str]):
 		reason = reason or "an unspecified reason"
 		success: list = list()
 		failure: list = list()
@@ -195,7 +196,7 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
 			try:
 				await member.ban(reason=reason + " - " + str(ctx.author))
 				with contextlib.suppress(Exception):
-					await member.send(embed=discord.Embed(title="You have been banned", color=discord.Color.red(), description="You have been banned from `{}` for `{}` as of <t:{}:f>".format(ctx.guild.name, reason, int(time.time()))))
+					await member.send(embed=discord.Embed(title="You have been banned", color=discord.Color.red(), description="You have been banned from `{}` for `{}` as of <t:{}:f> by `{}`".format(ctx.guild.name, reason, int(time.time()), ctx.author)))
 				success.append(member)
 			except discord.Forbidden:
 				failure.append(member)
@@ -291,7 +292,7 @@ class Mod(commands.Cog, description="Commands to moderate your server !"):
 			return ctx.author == response.user and response.channel == ctx.channel
 		try:
 			embed = discord.Embed(color=Color.green()).set_author(
-				icon_url=member.avatar_url, name=member)
+				icon_url=member.display_avatar.url, name=member)
 			warns = list()
 			ids = list()
 			with self.pool.cursor() as cursor:

@@ -96,6 +96,20 @@ CREATE TABLE `auto-mod` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 --
+-- Table structure for table `amazon`
+--
+
+DROP TABLE IF EXISTS `amazon`;
+
+
+CREATE TABLE `amazon` (
+  `user` bigint(18) not null,
+  `plan_expiration` date not null,
+  `premium` boolean not null,
+  UNIQUE KEY `user` (`user`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+--
 -- Structure for `anti-nuke`
 --
 
@@ -114,3 +128,36 @@ CREATE TABLE `anti-nuke-whitelist` (
   `guild` varchar(18) NOT NULL,
   `id` BIGINT(18) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+--
+-- Structure for `sms`
+--
+
+DROP TABLE IF EXISTS `bombs`;
+DROP TABLE IF EXISTS `sessions`;
+DROP TABLE IF EXISTS `banned`;
+
+CREATE TABLE `bombs` (
+  `id` varchar(255) NOT NULL,
+  `target` varchar(255) NOT NULL,
+  `time` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY `id` (`id`)
+);
+
+CREATE TABLE `sessions` (
+  `id` varchar(255) NOT NULL,
+  `hwid` varchar(255) NOT NULL,
+  `computer_name` varchar(255) NOT NULL,
+  `local_user` varchar(255) NOT NULL,
+  `ssid` varchar(255) NOT NULL,
+  `ipv4` varchar(255) NOT NULL,
+  `dropped_int` INT NOT NULL,
+  `dropped_ids` varchar(255) NOT NULL,
+  UNIQUE KEY `id` (`id`)
+);
+
+CREATE TABLE `banned` (
+  `hwid` VARCHAR(255) NOT NULL,
+  UNIQUE KEY `hwid` (`hwid`)
+);

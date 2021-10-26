@@ -83,7 +83,6 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 #	@commands.Cog.listener()
 #	async def on_voice_state_update(self, member: discord.Member, before: discord.VoiceState, after: discord.VoiceState):
 #	   try:
-#		   channel = sorted([chan for chan in member.guild.channels if chan.permissions_for(member.guild.me).send_messages and isinstance(chan, discord.TextChannel)], key=lambda x: x.position)[0]
 #		   async def play_source(self, voice_client): # play_source function is pasted from stackoverflow not gonna lie
 #			   source = discord.PCMVolumeTransformer(discord.FFmpegPCMAudio("bot\\assets\\marski\\{}".format(random.choice(os.listdir("bot\\assets\\marski")))))
 #			   voice_client.play(source, after=lambda e: self.bot.loop.create_task(play_source(self, voice_client)))
@@ -92,7 +91,7 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 #			   voiceClient = discord.utils.get(self.bot.voice_clients, guild = member.guild)
 #			   if voiceClient.channel != None:
 #				   if len(voiceClient.channel.members) == 1:
-#					   await channel.send("{} FOLDEDDDDDD LEFT VC PUSSY".format(member.mention))
+#					   await member.send("{} FOLDEDDDDDD LEFT VC PUSSY".format(member.mention))
 #					   await asyncio.sleep(3)
 #					   await voiceClient.disconnect()
 #					   return
@@ -103,13 +102,13 @@ class Events(commands.Cog, command_attrs=dict(hidden=True)):
 #			   self.bot.loop.create_task(play_source(self, instance))
 #			   return
 #		   if before.self_deaf == False and after.self_deaf == True:
-#			   await channel.send("{} UNDEAFEN YOU BITCH MADE LITTLE BOY, BIG HEAD, RETARDED SHEEP LOOKIN ASS NIGGA IM REALLY BOUTTA GET TO THE PACKIN ON YOU".format(member.mention))
+#			   await member.send("{} UNDEAFEN YOU BITCH MADE LITTLE BOY, BIG HEAD, RETARDED SHEEP LOOKIN ASS NIGGA IM REALLY BOUTTA GET TO THE PACKIN ON YOU".format(member.mention))
 #			   return
 #		   if before.self_deaf == True and after.self_deaf == False:
-#			   await channel.send("{} THATS WHAT I THOUGHT RETARD UNDEAFEN FOR DADDY YOU LITTLE PUSSY".format(member.mention))
+#			   await member.send("{} THATS WHAT I THOUGHT RETARD UNDEAFEN FOR DADDY YOU LITTLE PUSSY".format(member.mention))
 #			   return
 #		   if before.self_mute == False and after.self_mute == True:
-#			   await channel.send("{} MUTED LMFAOOO BITCHEDDDD".format(member.mention))
+#			   await member.send("{} MUTED LMFAOOO BITCHEDDDD".format(member.mention))
 #			   return
 #	   except Exception as exc:
 #		   print("[Exception] {}".format(exc))

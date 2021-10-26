@@ -1,7 +1,11 @@
-import typing
-import shlex
 import argparse
+from datetime import datetime
+import shlex
+import typing
+
+import discord
 from discord.ext import commands
+
 
 def EmojiBool(bool: bool):
     switch = {
@@ -21,6 +25,15 @@ class AntiNukeNotConfigured(commands.CheckFailure):
 
 class NotGuildOwner(commands.CheckFailure):
     pass
+
+
+class MemberConverter(commands.Converter):
+    async def convert(self, ctx: commands.Context, argument):
+        member: discord.Member = await commands.MemberConverter().convert(ctx, argument)
+        if ctx.author.top_role > member.top_role or ctx.guild.owner == ctx.author and not member == ctx.author and member.top_role < ctx.guild.me.top_role:
+            return member
+        else:
+            raise discord.Forbidden()
 
 class ShopItem(object):
     def __init__(self, item_name, item_price, item_emoji):
@@ -45,3 +58,9 @@ class AutoModConfig(object):
 
 def query(config: AutoModConfig) -> str:
     return config.__query__()
+
+
+class AmazonSubscription(object):
+    def __init__(self, premium: bool, subscription_end: datetime.date):
+        self.premium: bool = premium,
+        self.subscription_end: datetime.date = subscription_end

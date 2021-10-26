@@ -23,8 +23,6 @@ class Help(commands.HelpCommand):
         super().__init__(
             command_attrs={
                 "help": "The help command for the bot",
-                "cooldown": commands.Cooldown(1, 3.0, commands.BucketType.user),
-                        "aliases": ['commands']
             }
         )
 

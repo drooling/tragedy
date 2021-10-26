@@ -4,6 +4,7 @@ import contextlib
 import datetime
 import pprint
 import re
+import time
 import typing
 
 import aiohttp
@@ -132,14 +133,17 @@ class Automod(commands.Cog, description="Automatic Moderation"):
 			if self.spam_count[message.author.id] >= 3:
 				del self.spam_count[message.author.id]
 				await message.author.ban(reason="Tragedy Auto-Mod | User invoked rate limit 3+ times in 5 minutes")
+				with contextlib.suppress(Exception):
+					await message.author.send(embed=discord.Embed(title="You have been kicked", color=discord.Color.red(), description="You have been kicked from `{}` for `{}` as of <t:{}:f>".format(message.guild.name, "Tragedy Auto-Mod | You invoked rate limit 3+ times in 5 minutes", int(time.time()))))
 				return await message.channel.send(embed=discord.Embed(
 					title="Tragedy Auto-Mod",
 					color=Color.red(),
 					description="User has been banned for repeated spamming."
 				))
-			await message.channel.purge(limit=5, check=check, bulk=True)
-			embed = discord.Embed(title="Tragedy Auto-Mod", color=Color.red(), description="Woah Woah ! Slow down bud no spamming.")
-			return await message.channel.send(content="||%s||" % (message.author.mention), embed=embed)
+			else:
+				await message.channel.purge(limit=5, check=check, bulk=True)
+				embed = discord.Embed(title="Tragedy Auto-Mod", color=Color.red(), description="Woah Woah ! Slow down bud no spamming.")
+				return await message.channel.send(content="||%s||" % (message.author.mention), embed=embed)
 
 	async def invite_filter(self, message: discord.Message):
 		if message.author.guild_permissions.administrator:

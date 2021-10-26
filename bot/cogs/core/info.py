@@ -2,10 +2,13 @@
 
 import contextlib
 import io
+import json
 import re
 import shlex
 import subprocess
 import typing
+import urllib.parse
+import base64
 from datetime import datetime, time, timezone
 
 import aiohttp
@@ -35,7 +38,7 @@ class Info(commands.Cog, description="Commands that return information"):
 		# externalAccounts = list("Type: {} - Username: {}".format(external.get("type", "Error"), external.get("name", "Error")) for external in await userProfile.connected_accounts) User profile has been depracated since v1.7
 		embed = discord.Embed(color=Color.green(), timestamp=datetime.utcnow())
 		embed.set_author(name="{} ({})".format(
-			member, member.id), icon_url=member.avatar_url)
+			member, member.id), icon_url=member.display_avatar.url)
 		embed.add_field(name="Basic Info",
 						value="Joined Server At - **{} (<t:{}:R>)**\nRegistered on Discord At - **{} (<t:{}:R>)**".format(
 							humanize.naturaldate(member.joined_at),
@@ -53,7 +56,7 @@ class Info(commands.Cog, description="Commands that return information"):
 		embed.add_field(name="Flags",
 						value="{} - Discord Staff\n{} - Discord Partner\n{} - Verified Bot Developer".format(tragedy.EmojiBool(member.public_flags.staff), tragedy.EmojiBool(member.public_flags.partner), tragedy.EmojiBool(member.public_flags.verified_bot_developer)))
 		# embed.add_field(name="Other Info", value="HypeSquad House - {}\nUser has Nitro - {}\nConnected Accounts - {}".format(str(userProfile.hypesquad_houses).title(), tragedy.EmojiBool(await userProfile.nitro), ', '.join(externalAccounts).removeprefix(', ') if externalAccounts != [] else "None")) User profile has been depracated since v1.7
-		embed.set_footer(icon_url=ctx.author.avatar_url, text='Requested By: {}'.format(ctx.author.name))
+		embed.set_footer(icon_url=ctx.author.display_avatar.url, text='Requested By: {}'.format(ctx.author.name))
 		await ctx.reply(embed=embed, mention_author=True)
 
 	@commands.command(aliases=["guild", "si", "serverinfo", "guildinfo"], description="Returns info about current guild", help="serverinfo")
@@ -114,16 +117,9 @@ class Info(commands.Cog, description="Commands that return information"):
 	@commands.cooldown(1, 5, type=BucketType.member)
 	async def av(self, ctx, member: commands.MemberConverter = None):
 		member = member if member != None else ctx.author
-		_128 = member.avatar_url_as(format='png', size=128)
-		_256 = member.avatar_url_as(format='png', size=256)
-		_512 = member.avatar_url_as(format='png', size=512)
-		_1024 = member.avatar_url_as(format='png', size=1024)
-		_2048 = member.avatar_url_as(format='png', size=2048)
-		embed = discord.Embed(color=Color.green(),
-							  description="**[ [128]({}) ] - [ [256]({}) ] - [ 512 ] - [ [1024]({}) ] - [ [2048]({}) ]**".format(
-			_128, _256, _1024, _2048))
-		embed.set_image(url=_512)
-		embed.set_footer(text="{}'s Avatar (512 x 512)".format(member))
+		embed = discord.Embed(color=Color.green())
+		embed.set_image(url=member.display_avatar.url)
+		embed.set_footer(text="{}'s Avatar".format(member))
 		await ctx.reply(embed=embed, mention_author=True)
 
 	@commands.command(description="Returns specified member's status(es)", help="status [member]")
@@ -431,6 +427,21 @@ class Info(commands.Cog, description="Commands that return information"):
 			embed = discord.Embed(title="Breaches for `{}`".format(_query[1]), description=description, color=Color.green())
 			embed.set_footer(text="Powered by HaveIBeenPwned", icon_url="https://pbs.twimg.com/profile_images/414900961371377664/eulz0TdB_400x400.png")
 			await ctx.send(embed=embed)
+
+	@commands.command()
+	async def linkvertise(self, ctx: commands.Context, url: str):
+		if url.count('/327045/') > 0:
+			return await ctx.send("die")
+		try:
+			query_params = bytes(url.split('?r=')[1], 'utf-8')
+			destination = base64.decodebytes(query_params).decode('utf-8')
+		except IndexError:
+			async with self.aiohttp.get("https://bypass.bot.nu/bypass2?url={0}".format(urllib.parse.quote(url))) as response:
+				jObj = json.loads(await response.text())
+				status = jObj.get("success", False)
+				if status == True:
+					destination = jObj.get("destination", "Error")
+		await ctx.send(embed=discord.Embed(title="Linkvertise Bypasser", color=Color.green()).add_field(name="Bypassed Url", value=destination))
 
 def setup(bot):
 	bot.add_cog(Info(bot))

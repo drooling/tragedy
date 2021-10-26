@@ -3,12 +3,14 @@ import contextlib
 import io
 import logging
 import os
+import random
+import base64
 import pprint
 import traceback
 
 import aiohttp
 import discord
-from discord.ext.commands.errors import CommandNotFound
+from discord.ext.commands.errors import CommandNotFound, MissingPermissions
 import pymysql.cursors
 from bot.utils.classes import NotGuildOwner, NotVoter
 from discord.ext import commands
@@ -71,20 +73,22 @@ def is_guild_owner():
             return NotGuildOwner()
     return commands.check(predicate)
 
-def is_amazon_reseller():
+def is_amazon_buyer():
     async def predicate(ctx: commands.Context):
-        with open("bot\\assets\\resellers.txt", "r") as file:
-            resellers = file.read().split('\n')
-        if str(ctx.author.id) not in resellers:
-            raise CommandNotFound()
-        else:
-            return True
+        with __databaseConfig__.cursor() as cursor:
+            cursor.execute("SELECT * FROM `amazon` WHERE user=%s", (ctx.author.id))
+            row = cursor.fetchone()
+            try:
+                if row != None:
+                    return True
+                else:
+                    return False
+            except AttributeError:
+                raise MissingPermissions(["AMAZON GEN BUYER"])
     return commands.check(predicate)
 
-def is_me_or_xae():
-    def predicate(ctx: commands.Context):
-        return ctx.author.id in (831507521109360641, 875513626805555232)
-    return commands.check(predicate)
+def create_linkvertise(redirect_url: str) -> str:
+    return "https://link-to.net/327045/{0}/dynamic?r={1}".format(random.randint(1, 9000), base64.encodebytes(redirect_url.encode('utf-8')).decode('utf-8'))
 
 def HumanStatus(status):
     switch = {

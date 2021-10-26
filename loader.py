@@ -14,6 +14,7 @@ bot = commands.AutoShardedBot(tragedy.custom_prefix, intents=discord.Intents.all
                               strip_after_prefix=True, loop=asyncio.get_event_loop(),
                               status=discord.Status.dnd, owner_id=875513626805555232)
 
+
 logger = logging.getLogger('discord')
 logger.setLevel(logging.INFO)
 handler = logging.StreamHandler(stream=sys.stdout)
@@ -27,12 +28,10 @@ if __name__ == '__main__':
 		for filename in os.listdir("bot/cogs/{}".format(subdir)):
 			if filename.endswith(".py"):
 				try:
-					if filename[:-3] not in ("sms"):
-						bot.load_extension("bot.cogs.{}.{}".format(
-							subdir.replace('/', '.'), filename[:-3]))
-				except discord.ext.commands.ExtensionError as exc:
-					tragedy.logError(exc)
-				except discord.ext.commands.errors.ExtensionNotLoaded as exc:
-					tragedy.logError(exc)
+					#if filename[:-3] not in ("sms"):
+					bot.load_extension("bot.cogs.{}.{}".format(
+						subdir.replace('/', '.'), filename[:-3]))
+				except Exception as e:
+					tragedy.logError(e)
 
 bot.run(token)
