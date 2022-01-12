@@ -1,1 +1,1 @@
-old ass src, really shit code tbh. have fun (if you're a little cord boy looking at my git kys dork)
+A really old source code of the Tragedy discord bot that was leaked. The leak reulted in me completely rewriting the entire bot from scratch again. this code is really bad and old, most of the libraries are outdated and will not work. Do with this as you will.
